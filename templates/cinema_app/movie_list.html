@@ -1,0 +1,48 @@
+{% extends 'cinema_app/base.html' %}
+{% load static %}
+{% block content %}
+    <div class="container mt-4">
+        {% if movie_list %}
+            <h1 class="mb-4">Фільми</h1>
+            <div class="row mb-3 align-items-center movie-header">
+                <div class="col-md-3">
+                    <h5 class="text-dark">Назва</h5>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="text-dark">Жанр</h5>
+                </div>
+                <div class="col-md-2">
+                    <h5 class="text-dark">Дата</h5>
+                </div>
+                <div class="col-md-2">
+                    <h5 class="text-dark">Вік</h5>
+                </div>
+            </div>
+            {% for movie in movie_list %}
+                <div class="row mb-4 align-items-center movie-item p-3 border rounded shadow-sm">
+                    <div class="col-md-3">
+                        <h3><a href="{{ movie.get_absolute_url }}" class="text-dark">{{ movie.title }}</a></h3>
+                    </div>
+                    <div class="col-md-3">
+                        <p class="text-muted text-dark">{{ movie.genre.all|join:", " }}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p class="text-muted text-dark">{{ movie.release_date|date:"d.m.Y" }}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p class="text-muted text-dark">{{ movie.age_limit }}+</p>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        {% if movie.poster %}
+                            <img src="{{ movie.poster.url }}" alt="{{ movie.title }} poster" class="img-fluid rounded" style="max-width: 150px; height: auto;">
+                        {% else %}
+                            <img src="{{ MEDIA_URL }}posters/default_poster.jpg" alt="Default Poster" class="img-fluid rounded" style="max-width: 150px; height: auto;">
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <h1 class="mb-4">Фільми не знайдені</h1>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'cinema_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Мої квитки</h2>
+    
+    {% for ticket in ticket_list %}
+        <div class="row mb-4 align-items-center ticket-item p-3 border rounded shadow-sm">
+            <!-- Название фильма -->
+            <div class="col-md-3">
+                <h5 class="font-weight-bold mb-2">{{ ticket.session.movie.title }}</h5>
+            </div>
+            <!-- Дата и время -->
+            <div class="col-md-3">
+                <p class="mb-1"><strong>Дата:</strong> <span class="text-muted">{{ ticket.session.session_date|date:"d.m.Y" }}</span></p>
+                <p class="mb-1"><strong>Час:</strong> <span class="text-muted">{{ ticket.session.start_time|time:"H:i" }}</span></p>
+            </div>
+            <!-- Место -->
+            <div class="col-md-2">
+                <p class="mb-1"><strong>Місце:</strong> <span class="text-muted">{{ ticket.seat_number }}</span></p>
+            </div>
+            <!-- Зал -->
+            <div class="col-md-2">
+                <p class="mb-1"><strong>Зал:</strong> <span class="text-muted">{{ ticket.session.hall }}</span></p>
+            </div>
+            <!-- Цена -->
+            <div class="col-md-2">
+                <p class="mb-1"><strong>Ціна:</strong> <span class="text-muted">{{ ticket.session.base_ticket_price }} грн</span></p>
+            </div>
+            <!-- Постер фильма -->
+            <div class="col-md-2 text-center">
+                {% if ticket.session.movie.poster %}
+                    <img src="{{ ticket.session.movie.poster.url }}" alt="Постер {{ ticket.session.movie.title }}" class="img-fluid rounded" style="max-width: 150px; height: auto;">
+                {% else %}
+                    <img src="{% url 'posters/default_poster.jpg' %}" alt="Default Poster" class="img-fluid rounded" style="max-width: 150px; height: auto;">
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p>У вас немає квитків.</p>
+    {% endfor %}
+</div>
+{% endblock %}

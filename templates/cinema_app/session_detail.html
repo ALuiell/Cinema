@@ -1,0 +1,31 @@
+{% extends 'cinema_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Деталі сеансу: {{ session.movie.title }}</h1>
+            <p><strong>Жанри</strong> {{ session_detail.movie.genre.all|join:", " }}</p>
+            <p><strong>Зал:</strong> {{ session_detail.hall.name }}</p>
+            <p><strong>Дата сеансу:</strong> {{ session_detail.session_date|date:"d.m.Y" }}</p>
+            <p><strong>Початок сеансу:</strong> {{ session_detail.start_time|time:"H:i" }}</p>
+            <p><strong>Кінець сеансу:</strong> {{ session_detail.end_time|time:"H:i" }}</p>
+            <p><strong>Ціна квитка:</strong> {{ session_detail.base_ticket_price }} грн</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <h3>{{ session_detail.movie.title }}</h3>
+            {% if session_detail.movie.poster %}
+                <img src="{{ session_detail.movie.poster.url }}" alt="{{ session_detail.movie.title }} poster" class="img-fluid rounded" style="max-width: 100%; height: auto;">
+            {% else %}
+                <img src="{{ MEDIA_URL }}posters/default_poster.jpg" alt="Default Poster" class="img-fluid rounded" style="max-width: 100%; height: auto;">
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'session_list' %}" class="btn btn-secondary">Повернутися до списку сеансів</a>
+        <a href="{% url 'purchase_ticket' session_detail.slug %}" class="btn btn-secondary">Придбати квиток</a>
+    </div>
+</div>
+{% endblock %}

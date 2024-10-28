@@ -1,0 +1,89 @@
+{% extends 'cinema_app/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+    {% if user.is_authenticated %} 
+    <h2>Придбання квитка для: {{ session.movie.title }}</h2>
+    <p>Дата: {{ session.session_date|date:"d.m.Y" }} Час: {{ session.start_time|time:"H:i" }}</p>
+
+    <div class="screen mb-5" style="background-color: grey; height: 50px;">
+        <h3 class="text-center" style="line-height: 50px;">Екран</h3>
+        <p class="text-center">Ціна: {{ session.base_ticket_price|floatformat:0 }} грн</p>
+    </div>
+
+    <div class="seat-selection mb-4">
+        {% for row in seats %}
+            <div class="row justify-content-center mb-2">
+                {% for seat_number, status in row %}
+                    <button type="button" class="btn seat
+                        {% if status == 'Free' %}available btn-success{% else %}booked btn-danger{% endif %}"
+                        {% if status == 'Booked' %} disabled {% endif %}
+                        style="width: 40px; height: 40px; margin: 0 2px;"
+                        data-seat-number="{{ seat_number }}">
+                        {{ seat_number }}
+                    </button>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <form method="post" id="purchase_form" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="selected_seats" id="selected_seats" value="">
+        <button type="submit" class="btn btn-success">Придбати квиток</button>
+    </form>
+
+    <p id="price_message" class="mt-3"></p> <!-- Для отображения цены -->
+    {% else %}
+        <h2>Ви не авторизовані!</h2>
+        <p>Будь ласка, <a href="{% url 'login' %}">увійдіть</a> у свій акаунт, щоб придбати квиток.</p>
+    {% endif %}
+        
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    const sessionSlug = "{{ session.slug }}"; // Получаем слаг сессии из контекста Django
+
+    function updateAvailableSeats() {
+        $.ajax({
+            url: `/session/${sessionSlug}/available_seats/`, // URL для получения доступных мест
+            method: 'GET',
+            success: function(data) {
+                const availableSeats = data.available_seats;
+
+                // Обновляем статус мест на странице
+                document.querySelectorAll('.seat').forEach(button => {
+                    const seatNumber = parseInt(button.getAttribute('data-seat-number'));
+                    if (availableSeats.includes(seatNumber)) {
+                        button.classList.remove('booked');
+                        button.classList.add('available', 'btn-success');
+                        button.disabled = false; // Разрешаем нажатие на свободные места
+                    } else {
+                        button.classList.remove('available');
+                        button.classList.add('booked', 'btn-danger');
+                        button.disabled = true; // Запрещаем нажатие на забронированные места
+                    }
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching available seats:', error);
+            }
+        });
+    }
+
+    // Запускаем обновление каждые 5 секунд
+    setInterval(updateAvailableSeats, 2000);
+
+    document.querySelectorAll('.seat').forEach(button => {
+        button.addEventListener('click', function() {
+            const seatNumber = this.getAttribute('data-seat-number');
+            const basePrice = {{ session.base_ticket_price|floatformat:0 }};
+            const hallCapacity = {{ session.hall.capacity }};
+            document.getElementById('selected_seats').value = seatNumber;
+            document.getElementById('price_message').innerText = `Ціна за місце ${seatNumber}: ${basePrice} грн`;
+            document.getElementById('purchase_form').style.display = 'block';
+        });
+    });
+</script>
+{% endblock %}

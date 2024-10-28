@@ -1,0 +1,33 @@
+{% extends 'cinema_app/base.html' %}
+{% block content %}
+    <div class="container mt-4">
+        {% if movie_session_list %}
+            <h1 class="mb-4">Сеанси для {{ movie.title }}</h1>
+            <ul>
+                {% for session in movie_session_list %}
+                    <div class="col-md-4 mb-4">  <!-- Колонка для каждого сеанса -->
+                        <a href="{{ session.get_absolute_url }}" class="text-decoration-none">  <!-- Ссылка на фильм -->
+                            <div class="card border rounded shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ session.movie.title }}</h5>
+                                    <p class="card-text"><strong>Зал:</strong> {{ session.hall }}</p>
+                                    <p class="card-text"><strong>Дата:</strong> {{ session.session_date|date:"d.m.Y" }}</p>
+                                    <p class="card-text"><strong>Час початку:</strong> {{ session.start_time|time:"H:i" }}</p>
+                                    <div class="text-center">
+                                        {% if session.movie.poster %}
+                                            <img src="{{ session.movie.poster.url }}" alt="{{ session.movie.title }} poster" class="img-fluid rounded" style="max-width: 100%; height: auto;">
+                                        {% else %}
+                                            <img src="{{ MEDIA_URL }}posters/default_poster.jpg" alt="Default Poster" class="img-fluid rounded" style="max-width: 100%; height: auto;">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <h1 class="mb-4">Сеанси для {{ movie.title }} не знайдені</h1>
+        {% endif %}
+</div>
+{% endblock %}

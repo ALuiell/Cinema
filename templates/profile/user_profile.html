@@ -1,0 +1,40 @@
+{% extends 'cinema_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if user.is_authenticated %}
+        <div class="row">
+            <!-- Левый навбар -->
+            <div class="col-md-3 border-end">
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a href="{% url 'user_tickets' %}" class="btn btn-secondary w-100 text-start">Мої квитки</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="{% url 'profile_settings' %}" class="btn btn-secondary w-100 text-start">Налаштування профілю</a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger w-100">Вийти</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Информация о пользователе -->
+            <div class="col-md-9">
+                <h2>Профіль користувача</h2>
+                <p><strong>Ім'я:</strong> {{ user.first_name }}</p>
+                <p><strong>Прізвище:</strong> {{ user.last_name }}</p>
+                <p><strong>Електронна пошта:</strong> {{ user.email }}</p>
+                <p><strong>Логін:</strong> {{ user.username }}</p>
+            </div>
+        </div>
+    {% else %}
+        <h2>Ви не авторизовані</h2>
+        <p>Будь ласка, увійдіть у свій акаунт, щоб переглянути профіль.</p>
+    {% endif %}
+</div>
+{% endblock %}

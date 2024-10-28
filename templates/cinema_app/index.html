@@ -1,0 +1,50 @@
+{% extends 'cinema_app/base.html' %}
+{% load static %}
+{% block content %}
+    <div class="container mt-4">
+        <div class="row align-items-center">
+            <div class="col-md-4 text-center">
+                <img src="{% static 'cinema_app/img/logo.jpg' %}" alt="Logo" class="img-fluid rounded" style="max-width: 100%; height: auto;">
+            </div>
+            
+            <div class="col-md-8">
+                <h1>About Us</h1>
+                <p class="lead"><strong>Welcome to The Lantern of Valinor — a themed cinema dedicated to the magic and wonders of fantasy and science fiction! We specialize in showcasing films that transport you to extraordinary worlds, full of epic adventures, heroic quests, and captivating stories.</strong></p>
+         
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Новинки кінопрокату</h5>
+                        <p class="card-text">Не пропустіть наші нові релізи! Залишайтеся на зв'язку, щоб дізнатися про найновіші фільми, які виходять у нашому кінотеатрі.</p>
+                        <a href="{% url 'movie_list' %}" class="btn btn-primary">Переглянути новинки</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Спеціальні події</h5>
+                        <p class="card-text">Приєднуйтесь до наших тематичних вечірок та прем'єр! Відвідайте нашу сторінку подій для детальної інформації.</p>
+                        <a href="#" class="btn btn-primary">Дізнатися більше</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12 text-center">
+                <h5>Контактна інформація</h5>
+                <p>
+                    <strong>Email:</strong> info@lanternofvalinor.com <br>
+                    <strong>Телефон:</strong> +380 (44) 123-45-67 <br>
+                    <strong>Адреса:</strong> м. Київ, вул. Фентезі, 10
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

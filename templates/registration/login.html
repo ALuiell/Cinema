@@ -1,0 +1,16 @@
+{% extends 'cinema_app/base.html' %}
+{% load crispy_forms_filters %}
+
+{% block content %}
+    <div class="container">
+        <h2>Увійти</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-primary">Увійти</button>
+        </form>
+        <a href="{% url 'register' %}"><button type="submit" class="btn btn-primary">Реєстрація</button></a>
+        <a href="{% url 'password_reset' %}"><button type="submit" class="btn btn-primary">Забули пароль</button></a>
+    </div>
+{% endblock %}
