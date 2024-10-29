@@ -2,16 +2,21 @@
 {% load crispy_forms_filters %}
 {% load crispy_forms_tags %}
 
-{% block profile_content %}
-    
 <div class="container mt-4">
-    <form method="post">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <div class="mt-4">
-            <button type="submit" class="btn btn-primary">Зберегти зміни</button>
-            <a href="{% url 'profile' %}" class="btn btn-secondary ml-2">Скасувати</a>
+{% block profile_content %}
+    <div class="col-md-9">
+        <h2>Налаштування профілю</h2>
+    
+        <div class="container mt-4">
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Зберегти зміни</button>
+                    <a href="{% url 'profile' %}" class="btn btn-secondary ml-2">Скасувати</a>
+                </div>
+            </form>
         </div>
-    </form>
-</div>
+    </div>
 {% endblock %}
+</div>

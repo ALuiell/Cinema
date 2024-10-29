@@ -1,8 +1,8 @@
 {% extends 'profile/user_profile.html' %}
 {% load static %}
-
-{% block profile_content %}
 <div class="container mt-4">
+{% block profile_content %}
+    <div class="col-md-9">
     <h2>Мої квитки</h2>
     
     {% for ticket in ticket_list %}
@@ -15,20 +15,13 @@
             <div class="col-md-3">
                 <p class="mb-1"><strong>Дата:</strong> <span class="text-muted">{{ ticket.session.session_date|date:"d.m.Y" }}</span></p>
                 <p class="mb-1"><strong>Час:</strong> <span class="text-muted">{{ ticket.session.start_time|time:"H:i" }}</span></p>
-            </div>
-            <!-- Место -->
-            <div class="col-md-2">
-                <p class="mb-1"><strong>Місце:</strong> <span class="text-muted">{{ ticket.seat_number }}</span></p>
-            </div>
-            <!-- Зал -->
-            <div class="col-md-2">
-                <p class="mb-1"><strong>Зал:</strong> <span class="text-muted">{{ ticket.session.hall }}</span></p>
-            </div>
-            <!-- Цена -->
-            <div class="col-md-2">
                 <p class="mb-1"><strong>Ціна:</strong> <span class="text-muted">{{ ticket.session.base_ticket_price }} грн</span></p>
             </div>
-            <!-- Постер фильма -->
+            <!-- Зал -->
+            <div class="col-md-3">
+                <p class="mb-1"><strong>Зал:</strong> <span class="text-muted">{{ ticket.session.hall }}</span></p>
+                <p class="mb-1"><strong>Місце:</strong> <span class="text-muted">{{ ticket.seat_number }}</span></p>
+            </div>
             <div class="col-md-2 text-center">
                 {% if ticket.session.movie.poster %}
                     <img src="{{ ticket.session.movie.poster.url }}" alt="Постер {{ ticket.session.movie.title }}" class="img-fluid rounded" style="max-width: 150px; height: auto;">
@@ -40,5 +33,6 @@
     {% empty %}
         <p>У вас немає квитків.</p>
     {% endfor %}
-</div>
+    </div>
 {% endblock %}
+</div>
