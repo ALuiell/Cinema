@@ -37,13 +37,7 @@
     <div class="container">
         {% include 'cinema_app/navbar.html' %}
         {% block messages %}
-            {% if messages %}
-                {% for msg in messages %}
-                    <div class="alert alert-{{ msg.level_tag }}" role="alert">
-                        {{ msg.message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
+            {% include 'cinema_app/messages.html' %}
         {% endblock %}
         </div>
     </header>

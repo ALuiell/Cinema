@@ -1,22 +1,25 @@
+from datetime import date
+
+from django.contrib import messages
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.views import PasswordChangeView, LoginView
 from django.http import HttpResponseBadRequest, JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, TemplateView, DetailView, CreateView
+
+from .forms import CustomLoginForm, CustomUserCreationForm, ProfileUpdateForm, CustomPasswordChangeForm
 from .models import *
-from datetime import date
-from django.contrib.auth.views import LoginView
-from .forms import CustomLoginForm, CustomUserCreationForm, ProfileUpdateForm
-from django.contrib import messages
 
-
-# Create your views here.
 
 # superuser |  aluiel | 12365400
+class CustomPasswordChangeView(PasswordChangeView):
+    form_class = CustomPasswordChangeForm
+    success_url = reverse_lazy('password_change_done')
+    template_name = 'registration/change_password.html'
 
 
 class UserRegisterView(CreateView):
@@ -83,7 +86,6 @@ class HomePageView(TemplateView):
 
 class MovieListView(ListView):
     model = Movie
-    movie_list = Movie.objects.all()
     template_name = 'cinema_app/movie_list.html'
 
 
@@ -168,17 +170,22 @@ def purchase_ticket(request, session_slug):
         if selected_seat:
             try:
                 selected_seat = int(selected_seat)
-                price = calculate_dynamic_price(selected_seat, session.base_ticket_price, session.hall.capacity)
-                if not Ticket.objects.filter(session=session, user=request.user, seat_number=selected_seat):
+                price = session.base_ticket_price
+
+                # Проверка на существование билета
+                if not Ticket.objects.filter(session=session, user=request.user, seat_number=selected_seat).exists():
                     Ticket.objects.create(session=session, user=request.user, seat_number=selected_seat, price=price)
                     return redirect('success_url', seat_number=selected_seat, price=int(price), session_id=session.id)
                 else:
-                    return HttpResponseBadRequest("Квиток з таким місцем вже існує")
+                    messages.error(request, "Квиток з таким місцем вже існує")  # Предполагается, что это URL для выбора мест
             except ValueError:
-                return HttpResponseBadRequest("Invalid seat number")
+                messages.error(request, "Неправильний номер місця")
+
+            except Exception as e:
+                messages.error(request, "Сталася помилка при створенні квитка: {}".format(str(e)))
+
         else:
-            print("No seat selected in POST data:", request.POST)  # Отладка
-            return HttpResponseBadRequest("No seat selected")
+            messages.error(request, "Не вибрано місце")
 
     context = {
         'session': session,

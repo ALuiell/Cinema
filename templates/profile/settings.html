@@ -1,10 +1,10 @@
-{% extends 'cinema_app/base.html' %}
+{% extends 'profile/user_profile.html' %}
 {% load crispy_forms_filters %}
 {% load crispy_forms_tags %}
 
-{% block content %}
+{% block profile_content %}
+    
 <div class="container mt-4">
-    <h2>Налаштування профілю</h2>
     <form method="post">
         {% csrf_token %}
         {{ form|crispy }}

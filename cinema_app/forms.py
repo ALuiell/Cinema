@@ -1,8 +1,23 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Field
 from django.contrib.auth.models import User
+
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    old_password = forms.CharField(
+        label='Старий пароль',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Введіть старий пароль'})  # Добавление атрибутов
+    )
+    new_password1 = forms.CharField(
+        label='Новий пароль',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Введіть новий пароль'})
+    )
+    new_password2 = forms.CharField(
+        label='Підтвердження пароля',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Підтвердіть новий пароль'})
+    )
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -21,22 +36,9 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class ProfileUpdateForm(forms.ModelForm):
-    password = forms.CharField(
-        label="Новий пароль",
-        widget=forms.PasswordInput,
-        required=False,
-        help_text="Необов'язково"
-    )
-
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'password']
-
-    def clean_password(self):
-        password = self.cleaned_data.get('password')
-        if password and len(password) < 8:
-            raise forms.ValidationError("Пароль повинен містити принаймні 8 символів.")
-        return password
+        fields = ['first_name', 'last_name', 'email']
 
 
 class CustomLoginForm(AuthenticationForm):

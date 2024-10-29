@@ -1,18 +1,19 @@
 from datetime import time, timedelta, datetime
-
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
-from decimal import Decimal
-
 from django.urls import reverse
 from django.utils.text import slugify
-from .utils import poster_upload_to, generate_session_slug, calculate_dynamic_price
+from .utils import poster_upload_to, generate_session_slug
 
 
 class Hall(models.Model):
     name = models.CharField(max_length=100, db_index=True, verbose_name="Зал")
-    capacity = models.IntegerField(verbose_name='Кількість місць')
+    capacity = models.PositiveIntegerField(verbose_name='Кількість місць')
+
+    def clean(self, *args, **kwargs):
+        if self.capacity is None or self.capacity <= 0:
+            raise ValidationError("The capacity must be greater than zero.")
 
     def __str__(self):
         return self.name
@@ -137,26 +138,3 @@ class Ticket(models.Model):
     def __str__(self):
         return (f'{self.user.first_name} {self.user.last_name} | '
                 f' {self.session.movie} | {self.session}')
-
-    # def calculate_dynamic_price(self):
-    #     """Calculate price based on seat number and row."""
-    #     # Assume you have the total number of rows and seats
-    #     total_rows = self.session.hall.capacity // 10  # for example
-    #     total_seats_in_row = 10  # assuming each row has 10 seats
-    #     row = (self.seat_number - 1) // total_seats_in_row + 1  # Determine row based on seat number
-    #
-    #     # Base price
-    #     base_price = self.session.base_ticket_price
-    #
-    #     # Determine center rows
-    #     center_rows = range(total_rows // 2 - 1, total_rows // 2 + 1)
-    #
-    #     # Determine center seats
-    #     center_seats = range(total_seats_in_row // 2 - 3, total_seats_in_row // 2 + 3)
-    #
-    #     # Calculate price based on seat position
-    #     if row in center_rows and self.seat_number in center_seats:
-    #         return base_price * Decimal('1.5')
-    #     elif row in center_rows:
-    #         return base_price * Decimal('1.2')
-    #     return base_price
