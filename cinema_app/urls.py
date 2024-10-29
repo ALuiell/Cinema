@@ -23,6 +23,8 @@ urlpatterns = [
     path('home/', views.HomePageView.as_view(), name='home'),
     path('movies/', views.MovieListView.as_view(), name='movie_list'),
     path('movies/<slug:slug>/', views.MovieDetailView.as_view(), name='movie_detail'),
+    path('movies/genre/<str:genre_name>/', views.MovieGenreListView.as_view(), name='movie_genre_list'),
+
     path('sessions/', views.SessionListView.as_view(), name='session_list'),
     path('sessions/<slug:slug>/', views.SessionDetailView.as_view(), name='session_detail'),
     path('movies/<slug:slug>/sessions/', views.MovieSessionsView.as_view(), name='movie_sessions'),

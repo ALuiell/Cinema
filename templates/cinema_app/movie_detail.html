@@ -8,7 +8,11 @@
                 <h1>{{ movie.title }}</h1>
                 <p><strong>Опис:</strong> {{ movie.description }}</p>
                 <p><strong>Тривалість:</strong> {{ movie.duration }} хвилин</p>
-                <p><strong>Жанри:</strong> {{ movie.genre.all|join:", " }}</p>
+                <p><strong>Жанри:</strong>
+                    {% for genre in movie.genre.all %}
+                        <a href="{% url 'movie_genre_list' genre_name=genre.name %}">{{ genre.name }}</a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
                 <p><strong>Дата випуску:</strong> {{ movie.release_date|date:"d.m.Y" }}</p>
                 <p><strong>Вікове обмеження:</strong> {{ movie.age_limit }}+</p>
             </div>

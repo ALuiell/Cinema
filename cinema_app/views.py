@@ -111,6 +111,17 @@ class MovieSessionsView(ListView):
         return context
 
 
+class MovieGenreListView(ListView):
+    model = Movie
+    template_name = 'movie_list.html'
+    context_object_name = 'movie_list'
+
+    def get_queryset(self):
+        genre_name = self.kwargs.get('genre_name').strip()
+        print(f"Genre name received: {genre_name}")  # Отладочное сообщение
+        return Movie.objects.filter(genre__name=genre_name)
+
+
 class SessionListView(ListView):
     model = Session
     template_name = 'cinema_app/session_list.html'
@@ -171,13 +182,11 @@ def purchase_ticket(request, session_slug):
             try:
                 selected_seat = int(selected_seat)
                 price = session.base_ticket_price
-
-                # Проверка на существование билета
                 if not Ticket.objects.filter(session=session, user=request.user, seat_number=selected_seat).exists():
                     Ticket.objects.create(session=session, user=request.user, seat_number=selected_seat, price=price)
                     return redirect('success_url', seat_number=selected_seat, price=int(price), session_id=session.id)
                 else:
-                    messages.error(request, "Квиток з таким місцем вже існує")  # Предполагается, что это URL для выбора мест
+                    messages.error(request, "Квиток з таким місцем вже існує")
             except ValueError:
                 messages.error(request, "Неправильний номер місця")
 
