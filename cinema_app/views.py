@@ -1,15 +1,13 @@
 from datetime import date
 
 from django.contrib import messages
-from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import PasswordChangeView, LoginView
-from django.http import HttpResponseBadRequest, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.views import View
-from django.views.generic import ListView, TemplateView, DetailView, CreateView
+from django.views.generic import ListView, TemplateView, DetailView, UpdateView, CreateView
 
 from .forms import CustomLoginForm, CustomUserCreationForm, ProfileUpdateForm, CustomPasswordChangeForm
 from .models import *
@@ -27,6 +25,12 @@ class UserRegisterView(CreateView):
     template_name = 'registration/register.html'
     success_url = reverse_lazy('login')
 
+    def form_valid(self, form):
+        # Сохранение формы и создание пользователя
+        response = super().form_valid(form)
+        messages.success(self.request, 'Ви успішно зареєструвалися! Тепер ви можете увійти в систему.')
+        return response
+
 
 class CustomLoginView(LoginView):
     form_class = CustomLoginForm
@@ -34,9 +38,9 @@ class CustomLoginView(LoginView):
     success_url = reverse_lazy('profile')
 
     def form_valid(self, form):
-        user = form.get_user()
-        login(self.request, user)
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        messages.success(self.request, 'Ви успішно прошли авторизацію.')
+        return response
 
 
 class UserProfileView(LoginRequiredMixin, TemplateView):
@@ -48,36 +52,30 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
         return context
 
 
+class UserProfileSettingsView(LoginRequiredMixin, UpdateView):
+    model = User  # Укажите модель пользователя
+    form_class = ProfileUpdateForm  # Ваша форма для обновления профиля
+    template_name = 'profile/settings.html'
+    success_url = reverse_lazy('profile')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Ваш профіль успішно оновлено.')
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Будь ласка, перевірте правильність введених даних.')
+        return super().form_invalid(form)
+
+
 class UserTicketListView(ListView):
     model = Ticket
     template_name = 'profile/ticket_list.html'
 
     def get_queryset(self):
         return Ticket.objects.filter(user=self.request.user)
-
-
-class UserProfileSettingsView(LoginRequiredMixin, View):
-    template_name = 'profile/settings.html'
-
-    def get(self, request):
-        form = ProfileUpdateForm(instance=request.user)
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        form = ProfileUpdateForm(request.POST, instance=request.user)
-        if form.is_valid():
-            user = form.save(commit=False)
-            password = form.cleaned_data.get('password')
-            if password:
-                user.set_password(password)
-            user.save()
-            # Сохраняем сессию, чтобы оставаться залогиненым после изменения пароля
-            if password:
-                update_session_auth_hash(request, user)
-            messages.success(request, 'Ваш профіль успішно оновлено.')
-            return redirect('profile')
-        messages.error(request, 'Будь ласка, перевірте правильність введених даних.')
-        return render(request, self.template_name, {'form': form})
 
 
 class HomePageView(TemplateView):
@@ -184,7 +182,7 @@ def purchase_ticket(request, session_slug):
                 price = session.base_ticket_price
                 if not Ticket.objects.filter(session=session, user=request.user, seat_number=selected_seat).exists():
                     Ticket.objects.create(session=session, user=request.user, seat_number=selected_seat, price=price)
-                    return redirect('success_url', seat_number=selected_seat, price=int(price), session_id=session.id)
+                    return redirect('success_purchase_url', seat_number=selected_seat, price=int(price), session_id=session.id)
                 else:
                     messages.error(request, "Квиток з таким місцем вже існує")
             except ValueError:

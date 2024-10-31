@@ -30,7 +30,7 @@ urlpatterns = [
     path('movies/<slug:slug>/sessions/', views.MovieSessionsView.as_view(), name='movie_sessions'),
     path('purchase/<slug:session_slug>/', views.purchase_ticket, name='purchase_ticket'),
     path('purchase_success/<int:seat_number>/<int:price>/<int:session_id>/', views.purchase_success,
-         name='success_url'),
+         name='success_purchase_url'),
     path('session/<slug:session_slug>/available_seats/', views.get_available_seats, name='available_seats'),
     path('accounts/register/', views.UserRegisterView.as_view(), name='register'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),

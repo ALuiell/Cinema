@@ -42,9 +42,22 @@
         {% endblock %}
         </div>
     </header>
-    <main>
-        {% block content %} {% endblock %}
-    </main>
+            <div class="row">
+                <div class="col-md-2 custom-sidebar-left d-none d-md-block">
+                    <p class="text-center">ваша реклама</p>
+                    <img src="{% static 'cinema_app/img/tree2.png' %}" alt="left-sidebar-img" class="img-fluid">
+                </div>
+                <div class="col-md-8">
+                    <main>
+                        {% block content %}
+                        {% endblock %}
+                    </main>
+                </div>
+                <div class="col-md-2 custom-sidebar-right d-none d-md-block">
+                    <p class="text-center">ваша реклама</p>
+                    <img src="{% static 'cinema_app/img/tree2.png' %}" alt="right-sidebar-img" class="img-fluid">
+                </div>
+            </div>
     <footer class="bg-light text-black text-center py-4" style="border-top: 1px solid #ddd;">
     <div class="container">
         <p class="mb-0">&copy; 2024 The Lantern of Valinor. Всі права захищені.</p>

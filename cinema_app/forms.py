@@ -1,7 +1,5 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Field
 from django.contrib.auth.models import User
 
 
@@ -21,18 +19,29 @@ class CustomPasswordChangeForm(PasswordChangeForm):
 
 
 class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True, help_text="Обов'язково вкажіть дійсний email")
+
+    password1 = forms.CharField(
+        label="Пароль",
+        widget=forms.PasswordInput,
+        help_text="Ваш пароль має бути не менше 8 символів."
+    )
+
+    password2 = forms.CharField(
+        label="Підтвердження пароля",
+        widget=forms.PasswordInput,
+        help_text="Введіть пароль ще раз, для підтвердження."
+    )
 
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2')
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
-        if commit:
-            user.save()
-        return user
+        labels = {
+            'username': 'Логін',
+        }
+        help_texts = {
+            'username': 'Ваш унікальний логін.',
+            'email': 'Обов’язково вкажіть дійсний email.',
+        }
 
 
 class ProfileUpdateForm(forms.ModelForm):
@@ -44,9 +53,5 @@ class ProfileUpdateForm(forms.ModelForm):
 class CustomLoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Field('username', placeholder='Логін'),
-            Field('password', placeholder='Пароль'),
-            Submit('submit', 'Увійти'),
-        )
+        self.fields['username'].label = "Логін"
+        self.fields['password'].label = "Пароль"
