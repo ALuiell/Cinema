@@ -1,10 +1,11 @@
-from datetime import time, timedelta, datetime
+from datetime import time, timedelta, datetime, date
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 from .utils import poster_upload_to, generate_session_slug
+import re
 
 
 class Hall(models.Model):
@@ -36,7 +37,7 @@ class Movie(models.Model):
     ]
 
     title = models.CharField(max_length=100, verbose_name='Назва')
-    original_name = models.CharField(max_length=100, verbose_name='Оригінальна назва', blank=True)
+    original_name = models.CharField(max_length=100, verbose_name='Оригінальна назва')
     description = models.TextField(verbose_name='Опис')
     duration = models.PositiveIntegerField(verbose_name='Тривалість (хвилини)')
     genre = models.ManyToManyField(Genre, related_name='movies', verbose_name='Жанри')
@@ -58,6 +59,11 @@ class Movie(models.Model):
         return ', '.join([genre.name for genre in self.genre.all()])
 
     display_genres.short_description = 'Жанри'
+
+    def clean(self):
+        pattern = r"^[A-Za-z]+$"
+        if not re.match(pattern, self.original_name):
+            raise ValidationError("Original name must be on English only.")
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.original_name)
@@ -94,7 +100,18 @@ class Session(models.Model):
         return reverse('session_detail', kwargs={'slug': self.slug})
 
     def clean(self):
-        """Validate the start and end times of the session."""
+        # Ensure the base ticket price is a positive number
+        if self.base_ticket_price is None or self.base_ticket_price <= 0:
+            raise ValidationError("The ticket price must be greater than zero.")
+
+        # Validate that the session date is today or in the future
+        if self.session_date < date.today():
+            raise ValidationError("The session date cannot be in the past.")
+
+        # Check if start time is provided and within the allowed range
+        if self.start_time is None:
+            raise ValidationError("Start time must be a valid time.")
+
         if not (time(10, 0) <= self.start_time <= time(23, 59)):
             raise ValidationError("The session must start between 10:00 AM and 12:00 AM.")
 
@@ -126,7 +143,7 @@ class Ticket(models.Model):
 
     def clean(self):
         hall_capacity = self.session.hall.capacity
-        if not (1 <= self.seat_number <= hall_capacity):
+        if self.seat_number is None or hall_capacity is None or not (1 <= self.seat_number <= hall_capacity):
             raise ValidationError(
                 f"Номер місця має бути від 1 до {hall_capacity}."
             )

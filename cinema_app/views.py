@@ -116,7 +116,6 @@ class MovieGenreListView(ListView):
 
     def get_queryset(self):
         genre_name = self.kwargs.get('genre_name').strip()
-        print(f"Genre name received: {genre_name}")  # Отладочное сообщение
         return Movie.objects.filter(genre__name=genre_name)
 
 
@@ -126,7 +125,7 @@ class SessionListView(ListView):
     context_object_name = 'session_list'
 
     def get_queryset(self):
-        return Session.objects.filter(session_date__gte=date.today())
+        return Session.objects.filter(session_date__gte=date.today()).order_by('session_date', 'start_time')
 
 
 class SessionDetailView(DetailView):
