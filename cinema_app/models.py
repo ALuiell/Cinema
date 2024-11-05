@@ -48,7 +48,7 @@ class Movie(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['release_date']),  # Индекс для фильтрации по дате
+            models.Index(fields=['release_date']),
         ]
 
     def get_absolute_url(self):

@@ -60,7 +60,7 @@ class TicketAdmin(admin.ModelAdmin):
     get_movie_title.short_description = 'Фільм'
 
     def get_genres(self, obj):
-        return obj.session.movie.display_genres()  # Используем метод из модели
+        return obj.session.movie.display_genres()
     get_genres.short_description = 'Жанри'
 
     def get_session_date(self, obj):

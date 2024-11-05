@@ -19,6 +19,8 @@ from cinema_app import views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+
+
 urlpatterns = [
     path('home/', views.HomePageView.as_view(), name='home'),
     path('movies/', views.MovieListView.as_view(), name='movie_list'),
@@ -29,8 +31,7 @@ urlpatterns = [
     path('sessions/<slug:slug>/', views.SessionDetailView.as_view(), name='session_detail'),
     path('movies/<slug:slug>/sessions/', views.MovieSessionsView.as_view(), name='movie_sessions'),
     path('purchase/<slug:session_slug>/', views.purchase_ticket, name='purchase_ticket'),
-    path('purchase_success/<int:seat_number>/<int:price>/<int:session_id>/', views.purchase_success,
-         name='success_purchase_url'),
+    path('purchase_success/<int:session_id>/<str:ticket_ids>/', views.purchase_success, name='success_purchase_url'),
     path('session/<slug:session_slug>/available_seats/', views.get_available_seats, name='available_seats'),
     path('accounts/register/', views.UserRegisterView.as_view(), name='register'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),

@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 from django.contrib import messages
@@ -9,6 +10,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, TemplateView, DetailView, UpdateView, CreateView
 
+from cinema import settings
 from .forms import CustomLoginForm, CustomUserCreationForm, ProfileUpdateForm, CustomPasswordChangeForm
 from .models import *
 
@@ -26,7 +28,6 @@ class UserRegisterView(CreateView):
     success_url = reverse_lazy('login')
 
     def form_valid(self, form):
-        # Сохранение формы и создание пользователя
         response = super().form_valid(form)
         messages.success(self.request, 'Ви успішно зареєструвалися! Тепер ви можете увійти в систему.')
         return response
@@ -43,6 +44,9 @@ class CustomLoginView(LoginView):
         return response
 
 
+# ------------------------------------------------------------------------------
+
+
 class UserProfileView(LoginRequiredMixin, TemplateView):
     template_name = 'profile/user_profile.html'
 
@@ -53,8 +57,8 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
 
 
 class UserProfileSettingsView(LoginRequiredMixin, UpdateView):
-    model = User  # Укажите модель пользователя
-    form_class = ProfileUpdateForm  # Ваша форма для обновления профиля
+    model = User
+    form_class = ProfileUpdateForm
     template_name = 'profile/settings.html'
     success_url = reverse_lazy('profile')
 
@@ -69,6 +73,8 @@ class UserProfileSettingsView(LoginRequiredMixin, UpdateView):
         messages.error(self.request, 'Будь ласка, перевірте правильність введених даних.')
         return super().form_invalid(form)
 
+
+# ------------------------------------------------------------------------
 
 class UserTicketListView(ListView):
     model = Ticket
@@ -86,10 +92,20 @@ class MovieListView(ListView):
     model = Movie
     template_name = 'cinema_app/movie_list.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['MEDIA_URL'] = settings.MEDIA_URL
+        return context
+
 
 class MovieDetailView(DetailView):
     model = Movie
     template_name = 'cinema_app/movie_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['MEDIA_URL'] = settings.MEDIA_URL
+        return context
 
 
 class MovieSessionsView(ListView):
@@ -104,8 +120,8 @@ class MovieSessionsView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         movie_slug = self.kwargs['slug']
-        movie = Movie.objects.get(slug=movie_slug)  # Получаем объект фильма
-        context['movie'] = movie  # Добавляем фильм в контекст
+        movie = Movie.objects.get(slug=movie_slug)
+        context['movie'] = movie
         return context
 
 
@@ -133,16 +149,7 @@ class SessionDetailView(DetailView):
     template_name = 'cinema_app/session_detail.html'
     context_object_name = 'session_detail'
 
-
-def purchase_success(request, seat_number, price, session_id):
-    session = get_object_or_404(Session, id=session_id)
-
-    context = {
-        'seat_number': seat_number,
-        'price': price,
-        'session': session,
-    }
-    return render(request, 'cinema_app/purchase_success.html', context)
+# -------------------------------------------------------------------------------------
 
 
 def get_available_seats(request, session_slug):
@@ -155,43 +162,26 @@ def get_available_seats(request, session_slug):
 @login_required
 def purchase_ticket(request, session_slug):
     session = get_object_or_404(Session, slug=session_slug)
-
     available_seats = session.get_available_seats()
-    total_seats = list(range(1, session.hall.capacity + 1))
     seats_per_row = 10
     row_capacity = session.hall.capacity // seats_per_row
 
-    seats_by_row = []
-
-    for row in range(row_capacity):
-        row_seats = []
-        for seat_number in range(1, seats_per_row + 1):
-            seat_index = row * seats_per_row + seat_number
-            if seat_index in available_seats:
-                row_seats.append((seat_index, 'Free'))
-            else:
-                row_seats.append((seat_index, 'Booked'))
-        seats_by_row.append(row_seats)
+    seats_by_row = [
+        [
+            (row * seats_per_row + seat_number,
+             'Free' if (row * seats_per_row + seat_number) in available_seats else 'Booked')
+            for seat_number in range(1, seats_per_row + 1)
+        ]
+        for row in range(row_capacity)
+    ]
 
     if request.method == 'POST':
-        selected_seat = request.POST.get('selected_seats')
-        if selected_seat:
-            try:
-                selected_seat = int(selected_seat)
-                price = session.base_ticket_price
-                if not Ticket.objects.filter(session=session, user=request.user, seat_number=selected_seat).exists():
-                    Ticket.objects.create(session=session, user=request.user, seat_number=selected_seat, price=price)
-                    return redirect('success_purchase_url', seat_number=selected_seat, price=int(price), session_id=session.id)
-                else:
-                    messages.error(request, "Квиток з таким місцем вже існує")
-            except ValueError:
-                messages.error(request, "Неправильний номер місця")
+        success, result = purchase_ticket_process(request, session)
 
-            except Exception as e:
-                messages.error(request, "Сталася помилка при створенні квитка: {}".format(str(e)))
-
+        if success:
+            return redirect('success_purchase_url', session_id=result['session_id'], ticket_ids=result['ticket_ids'])
         else:
-            messages.error(request, "Не вибрано місце")
+            messages.error(request, result)
 
     context = {
         'session': session,
@@ -199,3 +189,49 @@ def purchase_ticket(request, session_slug):
     }
 
     return render(request, 'cinema_app/purchase_ticket.html', context)
+
+
+def purchase_ticket_process(request, session):
+    selected_seats = request.POST.get('selected_seats')
+    if not selected_seats:
+        return False, "Не вибрано місце"
+
+    try:
+        selected_seats = json.loads(selected_seats)
+        price = session.base_ticket_price
+        tickets = []
+
+        existing_tickets = Ticket.objects.filter(session=session, user=request.user).values_list('seat_number', flat=True)
+
+        for seat in selected_seats:
+            seat = int(seat)
+            if seat in existing_tickets:
+                return False, f"Квиток з місцем уже існує"
+
+            ticket = Ticket.objects.create(session=session, user=request.user, seat_number=seat, price=price)
+            tickets.append(ticket)
+
+        ticket_ids = [ticket.id for ticket in tickets]
+        request.POST = request.POST.copy()
+        return True, {'session_id': session.id, 'ticket_ids': json.dumps(ticket_ids)}
+
+    except ValueError:
+        return False, "Неправильний номер місця"
+    except Exception as e:
+        return False, f"Сталася помилка при створенні квитка: {str(e)}"
+
+
+def purchase_success(request, session_id, ticket_ids):
+    session = get_object_or_404(Session, id=session_id)
+
+    ticket_ids = json.loads(ticket_ids)
+    tickets = Ticket.objects.filter(id__in=ticket_ids)
+    seat_numbers = [ticket.seat_number for ticket in tickets]
+
+    context = {
+        'seat_numbers': seat_numbers,
+        'price': session.base_ticket_price * len(seat_numbers),
+        'session': session,
+    }
+
+    return render(request, 'cinema_app/purchase_success.html', context)

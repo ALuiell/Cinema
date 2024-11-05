@@ -40,6 +40,7 @@
                         {% if movie.poster %}
                             <img src="{{ movie.poster.url }}" alt="{{ movie.title }} poster" class="img-fluid rounded" style="max-width: 150px; height: auto;">
                         {% else %}
+                            <p>poster not found</p>
                             <img src="{{ MEDIA_URL }}posters/default_poster.jpg" alt="Default Poster" class="img-fluid rounded" style="max-width: 150px; height: auto;">
                         {% endif %}
                     </div>

@@ -33,7 +33,7 @@
         <button type="submit" class="btn btn-success">Придбати квиток</button>
     </form>
 
-    <p id="price_message" class="mt-3"></p> <!-- Для отображения цены -->
+    <p id="price_message" class="mt-3"></p> 
     {% else %}
         <h2>Ви не авторизовані!</h2>
         <p>Будь ласка, <a href="{% url 'login' %}">увійдіть</a> у свій акаунт, щоб придбати квиток.</p>
@@ -43,11 +43,12 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    const sessionSlug = "{{ session.slug }}"; // Получаем слаг сессии из контекста Django
+const sessionSlug = "{{ session.slug }}"; 
+let selectedSeats = [];  
 
-    function updateAvailableSeats() {
+ function updateAvailableSeats() {
         $.ajax({
-            url: `/session/${sessionSlug}/available_seats/`, // URL для получения доступных мест
+            url: `/session/${sessionSlug}/available_seats/`, 
             method: 'GET',
             success: function(data) {
                 const availableSeats = data.available_seats;
@@ -58,11 +59,11 @@
                     if (availableSeats.includes(seatNumber)) {
                         button.classList.remove('booked');
                         button.classList.add('available', 'btn-success');
-                        button.disabled = false; // Разрешаем нажатие на свободные места
+                        button.disabled = false; 
                     } else {
                         button.classList.remove('available');
                         button.classList.add('booked', 'btn-danger');
-                        button.disabled = true; // Запрещаем нажатие на забронированные места
+                        button.disabled = true; 
                     }
                 });
             },
@@ -70,20 +71,30 @@
                 console.error('Error fetching available seats:', error);
             }
         });
-    }
+}
 
-    // Запускаем обновление каждые 5 секунд
-    setInterval(updateAvailableSeats, 2000);
+setInterval(updateAvailableSeats, 1000);
 
-    document.querySelectorAll('.seat').forEach(button => {
-        button.addEventListener('click', function() {
-            const seatNumber = this.getAttribute('data-seat-number');
-            const basePrice = {{ session.base_ticket_price|floatformat:0 }};
-            const hallCapacity = {{ session.hall.capacity }};
-            document.getElementById('selected_seats').value = seatNumber;
-            document.getElementById('price_message').innerText = `Ціна за місце ${seatNumber}: ${basePrice} грн`;
-            document.getElementById('purchase_form').style.display = 'block';
-        });
+document.querySelectorAll('.seat').forEach(button => {
+    button.addEventListener('click', function() {
+        const seatNumber = parseInt(this.getAttribute('data-seat-number'));
+        const basePrice = {{ session.base_ticket_price|floatformat:0 }};
+
+        if (selectedSeats.includes(seatNumber)) {
+            selectedSeats = selectedSeats.filter(num => num !== seatNumber);
+            this.classList.remove('selected', 'btn-warning');
+        } else {
+            selectedSeats.push(seatNumber);
+            this.classList.add('selected', 'btn-warning');
+        }
+        
+        const totalPrice = selectedSeats.length * basePrice;
+        document.getElementById('price_message').innerText = `Загальна ціна за місця (${selectedSeats.join(', ')}): ${totalPrice} грн`;
+
+        // Отображаем форму, если есть выбранные места
+        document.getElementById('purchase_form').style.display = selectedSeats.length > 0 ? 'block' : 'none';
+        document.getElementById('selected_seats').value = JSON.stringify(selectedSeats); 
     });
+});
 </script>
 {% endblock %}
