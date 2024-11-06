@@ -1,88 +1,14 @@
 import json
-from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import PasswordChangeView, LoginView
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse_lazy
 from django.views.decorators.cache import cache_control
-from django.views.generic import ListView, TemplateView, DetailView, UpdateView, CreateView
+from django.views.generic import ListView, TemplateView, DetailView
 
 from cinema import settings
-from .forms import CustomLoginForm, CustomUserCreationForm, ProfileUpdateForm, CustomPasswordChangeForm
 from .models import *
-
-
-# superuser |  aluiel | 12365400
-class CustomPasswordChangeView(PasswordChangeView):
-    form_class = CustomPasswordChangeForm
-    success_url = reverse_lazy('password_change_done')
-    template_name = 'registration/change_password.html'
-
-
-class UserRegisterView(CreateView):
-    form_class = CustomUserCreationForm
-    template_name = 'registration/register.html'
-    success_url = reverse_lazy('login')
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, 'Ви успішно зареєструвалися! Тепер ви можете увійти в систему.')
-        return response
-
-
-class CustomLoginView(LoginView):
-    form_class = CustomLoginForm
-    template_name = 'registration/login.html'
-    success_url = reverse_lazy('profile')
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, 'Ви успішно прошли авторизацію.')
-        return response
-
-
-# ------------------------------------------------------------------------------
-
-
-class UserProfileView(LoginRequiredMixin, TemplateView):
-    template_name = 'profile/user_profile.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        return context
-
-
-class UserProfileSettingsView(LoginRequiredMixin, UpdateView):
-    model = User
-    form_class = ProfileUpdateForm
-    template_name = 'profile/settings.html'
-    success_url = reverse_lazy('profile')
-
-    def get_object(self, queryset=None):
-        return self.request.user
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Ваш профіль успішно оновлено.')
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        messages.error(self.request, 'Будь ласка, перевірте правильність введених даних.')
-        return super().form_invalid(form)
-
-
-# ------------------------------------------------------------------------
-
-class UserTicketListView(ListView):
-    model = Ticket
-    template_name = 'profile/ticket_list.html'
-
-    def get_queryset(self):
-        return Ticket.objects.filter(user=self.request.user)
 
 
 class HomePageView(TemplateView):
@@ -150,7 +76,6 @@ class SessionDetailView(DetailView):
     template_name = 'cinema_app/session_detail.html'
     context_object_name = 'session_detail'
 
-# -------------------------------------------------------------------------------------
 
 
 def get_available_seats(request, session_slug):

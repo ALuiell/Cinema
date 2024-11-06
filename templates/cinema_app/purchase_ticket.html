@@ -51,8 +51,7 @@
                 method: 'GET',
                 success: function (data) {
                     const availableSeats = data.available_seats;
-
-                    // Обновляем статус мест на странице
+                    
                     document.querySelectorAll('.seat').forEach(button => {
                         const seatNumber = parseInt(button.getAttribute('data-seat-number'));
                         if (availableSeats.includes(seatNumber)) {
@@ -80,8 +79,7 @@
             button.addEventListener('click', function () {
                 const seatNumber = parseInt(this.getAttribute('data-seat-number'));
                 const basePrice = {{ session.base_ticket_price|floatformat:0 }};
-
-                // Добавляем или удаляем место из массива
+                
                 if (selectedSeats.includes(seatNumber)) {
                     selectedSeats = selectedSeats.filter(num => num !== seatNumber);
                     this.classList.remove('selected', 'btn-warning');
@@ -92,8 +90,7 @@
 
                 const totalPrice = selectedSeats.length * basePrice;
                 document.getElementById('price_message').innerText = `Загальна ціна за місця (${selectedSeats.join(', ')}): ${totalPrice} грн`;
-
-                // Отображаем форму только если есть выбранные места
+                
                 document.getElementById('purchase_form').style.display = selectedSeats.length > 0 ? 'block' : 'none';
                 document.getElementById('selected_seats').value = JSON.stringify(selectedSeats);
             });

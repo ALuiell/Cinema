@@ -15,39 +15,46 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path
-from cinema_app import views
+from cinema_app import custom_auth_views, views, user_views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
-
 urlpatterns = [
+    # Main views
     path('home/', views.HomePageView.as_view(), name='home'),
     path('movies/', views.MovieListView.as_view(), name='movie_list'),
     path('movies/<slug:slug>/', views.MovieDetailView.as_view(), name='movie_detail'),
     path('movies/genre/<str:genre_name>/', views.MovieGenreListView.as_view(), name='movie_genre_list'),
 
+    # Session-related views
     path('sessions/', views.SessionListView.as_view(), name='session_list'),
     path('sessions/<slug:slug>/', views.SessionDetailView.as_view(), name='session_detail'),
     path('movies/<slug:slug>/sessions/', views.MovieSessionsView.as_view(), name='movie_sessions'),
+
+    # Ticket purchasing
     path('purchase/<slug:session_slug>/', views.purchase_ticket, name='purchase_ticket'),
     path('purchase_success/<int:session_id>/<str:ticket_ids>/', views.purchase_success, name='success_purchase_url'),
     path('session/<slug:session_slug>/available_seats/', views.get_available_seats, name='available_seats'),
-    path('accounts/register/', views.UserRegisterView.as_view(), name='register'),
-    path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
+
+    # Authentication paths
+    path('accounts/register/', custom_auth_views.UserRegisterView.as_view(), name='register'),
+    path('accounts/login/', custom_auth_views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('accounts/password_change/', views.CustomPasswordChangeView.as_view(), name='password_change'),
+    path('accounts/password_change/', custom_auth_views.CustomPasswordChangeView.as_view(), name='password_change'),
     path('accounts/password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
     path('accounts/password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('accounts/password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('accounts/reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(),
          name='password_reset_confirm'),
     path('accounts/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-    path('profile/', views.UserProfileView.as_view(), name='profile'),
-    path('profile/tickets/', views.UserTicketListView.as_view(), name='user_tickets'),
-    path('profile/settings/', views.UserProfileSettingsView.as_view(), name='profile_settings'),
 
+    # User profile views
+    path('profile/', user_views.UserProfileView.as_view(), name='profile'),
+    path('profile/tickets/', user_views.UserTicketListView.as_view(), name='user_tickets'),
+    path('profile/settings/', user_views.UserProfileSettingsView.as_view(), name='profile_settings'),
 ]
 
+# Static files (only in DEBUG mode)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
