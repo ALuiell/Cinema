@@ -8,6 +8,7 @@ from django.contrib.auth.views import PasswordChangeView, LoginView
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.views.decorators.cache import cache_control
 from django.views.generic import ListView, TemplateView, DetailView, UpdateView, CreateView
 
 from cinema import settings
@@ -159,6 +160,7 @@ def get_available_seats(request, session_slug):
     return JsonResponse({'available_seats': available_seats})
 
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @login_required
 def purchase_ticket(request, session_slug):
     session = get_object_or_404(Session, slug=session_slug)
@@ -206,7 +208,7 @@ def purchase_ticket_process(request, session):
         for seat in selected_seats:
             seat = int(seat)
             if seat in existing_tickets:
-                return False, f"Квиток з місцем уже існує"
+                return False, f"Місця зайняті"
 
             ticket = Ticket.objects.create(session=session, user=request.user, seat_number=seat, price=price)
             tickets.append(ticket)
