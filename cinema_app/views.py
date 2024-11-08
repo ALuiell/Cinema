@@ -25,6 +25,16 @@ class MovieListView(ListView):
         return context
 
 
+class MovieGenreListView(ListView):
+    model = Movie
+    template_name = 'movie_list.html'
+    context_object_name = 'movie_list'
+
+    def get_queryset(self):
+        genre_name = self.kwargs.get('genre_name').strip()
+        return Movie.objects.filter(genre__name=genre_name)
+
+
 class MovieDetailView(DetailView):
     model = Movie
     template_name = 'cinema_app/movie_detail.html'
@@ -52,16 +62,6 @@ class MovieSessionsView(ListView):
         return context
 
 
-class MovieGenreListView(ListView):
-    model = Movie
-    template_name = 'movie_list.html'
-    context_object_name = 'movie_list'
-
-    def get_queryset(self):
-        genre_name = self.kwargs.get('genre_name').strip()
-        return Movie.objects.filter(genre__name=genre_name)
-
-
 class SessionListView(ListView):
     model = Session
     template_name = 'cinema_app/session_list.html'
@@ -75,7 +75,6 @@ class SessionDetailView(DetailView):
     model = Session
     template_name = 'cinema_app/session_detail.html'
     context_object_name = 'session_detail'
-
 
 
 def get_available_seats(request, session_slug):
