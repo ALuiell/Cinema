@@ -23,9 +23,9 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     # Main views
     path('home/', views.HomePageView.as_view(), name='home'),
-    path('movies/', views.MovieListView.as_view(), name='movie_list'),
+    path('movies/', views.movie_list, name='movie_list'),
     path('movies/<slug:slug>/', views.MovieDetailView.as_view(), name='movie_detail'),
-    path('movies/genre/<str:genre_name>/', views.MovieGenreListView.as_view(), name='movie_genre_list'),
+
 
     # Session-related views
     path('sessions/', views.SessionListView.as_view(), name='session_list'),

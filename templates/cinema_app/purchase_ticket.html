@@ -71,10 +71,10 @@
             });
         }
 
-        setInterval(updateAvailableSeats, 100000);
+        setInterval(updateAvailableSeats, 5000);
     </script>
 
-    <script>
+    <script>    
         document.querySelectorAll('.seat').forEach(button => {
             button.addEventListener('click', function () {
                 const seatNumber = parseInt(this.getAttribute('data-seat-number'));

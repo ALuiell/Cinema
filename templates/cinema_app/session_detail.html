@@ -8,7 +8,7 @@
             <h1>Деталі сеансу: {{ session.movie.title }}</h1>
             <p><strong>Жанри:</strong>
                     {% for genre in session_detail.movie.genre.all %}
-                        <a href="{% url 'movie_genre_list' genre_name=genre.name %}">{{ genre.name }}</a>{% if not forloop.last %}, {% endif %}
+                        <a href="{% url 'movie_list' %}?genre={{ genre.id }}">{{ genre.name }}</a>{% if not forloop.last %},{% endif %}
                     {% endfor %}
             </p>
             <p><strong>Зал:</strong> {{ session_detail.hall.name }}</p>

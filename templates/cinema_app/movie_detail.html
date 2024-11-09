@@ -10,7 +10,7 @@
                 <p><strong>Тривалість:</strong> {{ movie.duration }} хвилин</p>
                 <p><strong>Жанри:</strong>
                     {% for genre in movie.genre.all %}
-                        <a href="{% url 'movie_genre_list' genre_name=genre.name %}">{{ genre.name }}</a>{% if not forloop.last %}, {% endif %}
+                        <a href="{% url 'movie_list' %}?genre={{ genre.id }}">{{ genre.name }}</a>{% if not forloop.last %},{% endif %}
                     {% endfor %}
                 </p>
                 <p><strong>Дата випуску:</strong> {{ movie.release_date|date:"d.m.Y" }}</p>
@@ -18,15 +18,18 @@
             </div>
             <div class="col-md-4 text-center">
                 {% if movie.poster %}
-                    <img src="{{ movie.poster.url }}" alt="{{ movie.title }} poster" class="img-fluid rounded" style="max-width: 100%; height: auto;">
+                    <img src="{{ movie.poster.url }}" alt="{{ movie.title }} poster" class="img-fluid rounded"
+                         style="max-width: 100%; height: auto;">
                 {% else %}
-                    <img src="{{ MEDIA_URL }}posters/default_poster.jpg" alt="Default Poster" class="img-fluid rounded" style="max-width: 100%; height: auto;">
+                    <img src="{{ MEDIA_URL }}posters/default_poster.jpg" alt="Default Poster" class="img-fluid rounded"
+                         style="max-width: 100%; height: auto;">
                 {% endif %}
             </div>
         </div>
         <div class="mt-4">
             <a href="{% url 'movie_list' %}" class="btn btn-secondary">Повернутися до списку фільмів</a>
-            <a href="{% url 'movie_sessions' movie.slug %}" class="btn btn-secondary">Переглянути всі сеанси цього фільму</a>
+            <a href="{% url 'movie_sessions' movie.slug %}" class="btn btn-secondary">Переглянути всі сеанси цього
+                фільму</a>
         </div>
     </div>
 {% endblock %}

@@ -1,28 +1,51 @@
 import json
+import locale
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils.dateparse import parse_date
 from django.views.decorators.cache import cache_control
 from django.views.generic import ListView, TemplateView, DetailView
-
+from datetime import date, timedelta
 from cinema import settings
 from .models import *
+from django.db.models import Q
 
 
 class HomePageView(TemplateView):
     template_name = 'cinema_app/index.html'
 
 
-class MovieListView(ListView):
-    model = Movie
-    template_name = 'cinema_app/movie_list.html'
+def movie_list(request):
+    movies = Movie.objects.all()
+    genres = Genre.objects.all()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['MEDIA_URL'] = settings.MEDIA_URL
-        return context
+    selected_genres = request.GET.getlist('genre')
+    age_limit = request.GET.get('age_limit')
+    search_query = request.GET.get('search', '')
+
+    if selected_genres and "" not in selected_genres:
+        movies = movies.filter(genre__id__in=selected_genres).distinct()
+    if age_limit:
+        movies = movies.filter(age_limit=age_limit)
+    if search_query:
+        search_query = search_query.capitalize()
+        query = Q(title__icontains=search_query) | Q(description__icontains=search_query)
+        movies = movies.filter(query)
+
+    context = {
+        'movie_list': movies,
+        'genres': genres,
+        'selected_genres': selected_genres,
+        'selected_age_limit': age_limit,
+        'search_query': search_query,
+        'AGE_CHOICES': Movie.AGE_CHOICES,
+        'MEDIA_URL': settings.MEDIA_URL
+    }
+
+    return render(request, 'cinema_app/movie_list.html', context)
 
 
 class MovieDetailView(DetailView):
@@ -52,30 +75,58 @@ class MovieSessionsView(ListView):
         return context
 
 
-class MovieGenreListView(ListView):
-    model = Movie
-    template_name = 'movie_list.html'
-    context_object_name = 'movie_list'
-
-    def get_queryset(self):
-        genre_name = self.kwargs.get('genre_name').strip()
-        return Movie.objects.filter(genre__name=genre_name)
-
-
 class SessionListView(ListView):
     model = Session
     template_name = 'cinema_app/session_list.html'
     context_object_name = 'session_list'
 
     def get_queryset(self):
-        return Session.objects.filter(session_date__gte=date.today()).order_by('session_date', 'start_time')
+        sessions = Session.objects.filter(session_date__gte=date.today()).order_by('session_date', 'start_time')
+
+        selected_date = self.request.GET.get('date', None)
+        if selected_date:
+            # Преобразуем строку в дату
+            selected_date = parse_date(selected_date)
+            if selected_date:
+                # Используем прямое сравнение для DateField
+                sessions = sessions.filter(session_date=selected_date)
+
+        return sessions
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Устанавливаем локаль на украинский
+        locale.setlocale(locale.LC_TIME, 'uk_UA.UTF-8')
+
+        today = date.today()
+        selected_date = self.request.GET.get('date', None)
+
+        # Если selected_date не передан, то используем today's date как default
+        if selected_date:
+            selected_date = parse_date(selected_date)
+        else:
+            selected_date = today
+
+        context.update({
+            'today': today,
+            'today_label': "Сьогодні",
+            'tomorrow': today + timedelta(days=1),
+            'tomorrow_label': "Завтра",
+            'upcoming_days': [
+                {'date': today + timedelta(days=i), 'label': (today + timedelta(days=i)).strftime('%A %d.%m')}
+                for i in range(2, 5)
+            ],
+            'selected_date': selected_date,
+        })
+
+        return context
 
 
 class SessionDetailView(DetailView):
     model = Session
     template_name = 'cinema_app/session_detail.html'
     context_object_name = 'session_detail'
-
 
 
 def get_available_seats(request, session_slug):
@@ -128,7 +179,8 @@ def purchase_ticket_process(request, session):
         price = session.base_ticket_price
         tickets = []
 
-        existing_tickets = Ticket.objects.filter(session=session, user=request.user).values_list('seat_number', flat=True)
+        existing_tickets = Ticket.objects.filter(session=session, user=request.user).values_list('seat_number',
+                                                                                                 flat=True)
 
         for seat in selected_seats:
             seat = int(seat)

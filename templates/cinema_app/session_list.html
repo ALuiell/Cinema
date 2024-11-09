@@ -3,6 +3,7 @@
 
 {% block content %}
     <div class="container mt-4">
+        {% include "cinema_app/filter_bar_session_list.html" %}
         {% if session_list %}
             <h1 class="mb-4">Сеанси</h1>
             <div class="row mb-3">
