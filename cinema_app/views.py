@@ -8,7 +8,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.views.decorators.cache import cache_control
 from django.views.generic import ListView, TemplateView, DetailView
-from datetime import date, timedelta
 from cinema import settings
 from .models import *
 from django.db.models import Q
@@ -32,7 +31,7 @@ def movie_list(request):
         movies = movies.filter(age_limit=age_limit)
     if search_query:
         search_query = search_query.capitalize()
-        query = Q(title__icontains=search_query) | Q(description__icontains=search_query)
+        query = Q(title__icontains=search_query) | Q(description__icontains=search_query) | Q(original_name__icontains=search_query)
         movies = movies.filter(query)
 
     context = {
