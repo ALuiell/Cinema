@@ -5,6 +5,7 @@
         {% include 'cinema_app/filter_bar_movie_list.html' %}
         {% if movie_list %}
             <h1 class="mb-4">Фільми</h1>
+            <div class="row mb-3 align-items-center movie-header">
             </div>
             {% for movie in movie_list %}
                 <div class="row mb-4 align-items-center movie-item p-3 border rounded shadow-sm">
