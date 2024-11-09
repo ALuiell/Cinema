@@ -1,7 +1,7 @@
 <form method="get" class="mb-4">
     <div class="row">
         <div class="col-md-4">
-            <label for="date" class="form-label">Вибір дати:</label>
+            <label for="date" class="form-label">Обрати дату:</label>
             <select name="date" id="date" class="form-select">
                 <option value="" {% if not selected_date %}selected{% endif %}>Без дати</option> <!-- Опция без фильтра -->
                 <option value="{{ today|date:"Y-m-d" }}" {% if selected_date == today %}selected{% endif %}>{{ today_label }}</option>
@@ -12,7 +12,7 @@
             </select>
         </div>
         <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">Застосувати фільтр</button>
+            <button type="submit" class="btn btn-primary w-100">Пошук</button>
         </div>
     </div>
 </form>

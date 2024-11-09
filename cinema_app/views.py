@@ -85,10 +85,8 @@ class SessionListView(ListView):
 
         selected_date = self.request.GET.get('date', None)
         if selected_date:
-            # Преобразуем строку в дату
             selected_date = parse_date(selected_date)
             if selected_date:
-                # Используем прямое сравнение для DateField
                 sessions = sessions.filter(session_date=selected_date)
 
         return sessions
