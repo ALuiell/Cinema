@@ -29,8 +29,9 @@ urlpatterns = [
 
     # Session-related views
     path('sessions/', views.SessionListView.as_view(), name='session_list'),
-    path('sessions/<slug:slug>/', views.SessionDetailView.as_view(), name='session_detail'),
-    path('movies/<slug:slug>/sessions/', views.MovieSessionsView.as_view(), name='movie_sessions'),
+    path('sessions/<slug:slug>/', views.SessionListView.as_view(), name='movie_session_list'),
+
+    path('session/<slug:slug>/', views.SessionDetailView.as_view(), name='session_detail'),
 
     # Ticket purchasing
     path('purchase/<slug:session_slug>/', views.purchase_ticket, name='purchase_ticket'),
