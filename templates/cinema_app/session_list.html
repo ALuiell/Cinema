@@ -8,17 +8,17 @@
             <h1 class="mb-4">Сеанси</h1>
             <div class="row mb-3">
                 {% for session in session_list %}
-                    <div class="col-md-4 mb-4">  <!-- Колонка для каждого сеанса -->
+                    <div class="col-md-4 mb-4">  
                         <a href="{{ session.get_absolute_url }}" class="text-decoration-none">  <!-- Ссылка на фильм -->
                             <div class="card border rounded shadow-sm">
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ session.movie.title }}</h5>
+                                    <h5 class="card-title text-truncate" style="max-width: 100%;">{{ session.movie.title }}</h5>
                                     <p class="card-text"><strong>Зал:</strong> {{ session.hall }}</p>
                                     <p class="card-text"><strong>Дата:</strong> {{ session.session_date|date:"d.m.Y" }}</p>
                                     <p class="card-text"><strong>Час початку:</strong> {{ session.start_time|time:"H:i" }}</p>
                                     <div class="text-center">
                                         {% if session.movie.poster %}
-                                            <img src="{{ session.movie.poster.url }}" alt="{{ session.movie.title }} poster" class="img-fluid rounded" style="max-width: 100%; height: auto;">
+                                            <img src="{{ session.movie.poster.url }}" alt="{{ session.movie.title }} poster" class="img-fluid rounded" style="width: 300px; height: 450px; object-fit: cover;">
                                         {% else %}
                                             <img src="{{ MEDIA_URL }}posters/default_poster.jpg" alt="Default Poster" class="img-fluid rounded" style="max-width: 100%; height: auto;">
                                         {% endif %}

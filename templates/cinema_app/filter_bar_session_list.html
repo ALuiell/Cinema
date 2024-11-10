@@ -3,6 +3,7 @@
         <div class="col-md-4">
             <label for="date" class="form-label">Обрати дату:</label>
             <select name="date" id="date" class="form-select">
+                <!-- Пункт по умолчанию - Без дати -->
                 <option value="" {% if not selected_date %}selected{% endif %}>Без дати</option>
                 <option value="{{ today|date:"Y-m-d" }}" {% if selected_date == today %}selected{% endif %}>{{ today_label }}</option>
                 <option value="{{ tomorrow|date:"Y-m-d" }}" {% if selected_date == tomorrow %}selected{% endif %}>{{ tomorrow_label }}</option>

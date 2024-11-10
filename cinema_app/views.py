@@ -57,23 +57,6 @@ class MovieDetailView(DetailView):
         return context
 
 
-class MovieSessionsView(ListView):
-    model = Session
-    template_name = 'cinema_app/movie_sessions.html'
-    context_object_name = 'movie_session_list'
-
-    def get_queryset(self):
-        movie_slug = self.kwargs['slug']
-        return Session.objects.filter(movie__slug=movie_slug, session_date__gte=date.today())
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        movie_slug = self.kwargs['slug']
-        movie = Movie.objects.get(slug=movie_slug)
-        context['movie'] = movie
-        return context
-
-
 class SessionListView(ListView):
     model = Session
     template_name = 'cinema_app/session_list.html'
@@ -81,6 +64,12 @@ class SessionListView(ListView):
 
     def get_queryset(self):
         sessions = Session.objects.filter(session_date__gte=date.today()).order_by('session_date', 'start_time')
+
+        # Проверяем наличие slug фильма в параметрах URL
+        movie_slug = self.kwargs.get('slug')
+        if movie_slug:
+            # Фильтруем сессии только по slug фильма
+            sessions = sessions.filter(movie__slug=movie_slug)
 
         selected_date = self.request.GET.get('date', None)
         if selected_date:
@@ -104,6 +93,12 @@ class SessionListView(ListView):
             selected_date = parse_date(selected_date)
         else:
             selected_date = today
+
+        # Добавляем информацию о фильме в контекст, если передан `slug`
+        movie_slug = self.kwargs.get('slug')
+        if movie_slug:
+            movie = Movie.objects.get(slug=movie_slug)
+            context['movie'] = movie
 
         context.update({
             'today': today,
