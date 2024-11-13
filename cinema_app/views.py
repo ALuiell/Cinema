@@ -13,38 +13,47 @@ from .models import *
 from django.db.models import Q
 
 
+def redirect_to_home(request):
+    return redirect("home")
+
+
 class HomePageView(TemplateView):
     template_name = 'cinema_app/index.html'
 
 
-def movie_list(request):
-    movies = Movie.objects.all()
-    genres = Genre.objects.all()
+class MovieListView(ListView):
+    model = Movie
+    template_name = 'cinema_app/movie_list.html'
+    context_object_name = 'movie_list'
+    paginate_by = 3
 
-    selected_genres = request.GET.getlist('genre')
-    age_limit = request.GET.get('age_limit')
-    search_query = request.GET.get('search', '')
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        selected_genres = self.request.GET.getlist('genre')
+        age_limit = self.request.GET.get('age_limit')
+        search_query = self.request.GET.get('search', '')
 
-    if selected_genres and "" not in selected_genres:
-        movies = movies.filter(genre__id__in=selected_genres).distinct()
-    if age_limit:
-        movies = movies.filter(age_limit=age_limit)
-    if search_query:
-        search_query = search_query.capitalize()
-        query = Q(title__icontains=search_query) | Q(description__icontains=search_query) | Q(original_name__icontains=search_query)
-        movies = movies.filter(query)
+        if selected_genres and "" not in selected_genres:
+            queryset = queryset.filter(genre__id__in=selected_genres).distinct()
+        if age_limit:
+            queryset = queryset.filter(age_limit=age_limit)
+        if search_query:
+            search_query = search_query.capitalize()
+            query = Q(title__icontains=search_query) | Q(description__icontains=search_query) | Q(
+                original_name__icontains=search_query)
+            queryset = queryset.filter(query)
 
-    context = {
-        'movie_list': movies,
-        'genres': genres,
-        'selected_genres': selected_genres,
-        'selected_age_limit': age_limit,
-        'search_query': search_query,
-        'AGE_CHOICES': Movie.AGE_CHOICES,
-        'MEDIA_URL': settings.MEDIA_URL
-    }
+        return queryset
 
-    return render(request, 'cinema_app/movie_list.html', context)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['genres'] = Genre.objects.all()
+        context['selected_genres'] = self.request.GET.getlist('genre')
+        context['selected_age_limit'] = self.request.GET.get('age_limit')
+        context['search_query'] = self.request.GET.get('search', '')
+        context['AGE_CHOICES'] = Movie.AGE_CHOICES
+        context['MEDIA_URL'] = settings.MEDIA_URL
+        return context
 
 
 class MovieDetailView(DetailView):
@@ -91,8 +100,6 @@ class SessionListView(ListView):
         # Если selected_date не передан, то используем today's date как default
         if selected_date:
             selected_date = parse_date(selected_date)
-        else:
-            selected_date = today
 
         # Добавляем информацию о фильме в контекст, если передан `slug`
         movie_slug = self.kwargs.get('slug')

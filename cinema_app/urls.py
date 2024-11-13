@@ -22,8 +22,9 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     # Main views
+    path('', views.redirect_to_home),
     path('home/', views.HomePageView.as_view(), name='home'),
-    path('movies/', views.movie_list, name='movie_list'),
+    path('movies/', views.MovieListView.as_view(), name='movie_list'),
     path('movies/<slug:slug>/', views.MovieDetailView.as_view(), name='movie_detail'),
 
 

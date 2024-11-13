@@ -16,6 +16,7 @@
                         <p class="text-muted text-dark">
                             {% for genre in movie.genre.all %}
                                 <a href="?genre={{ genre.id }}&search=
+                                        
                                         {{ search_query }}{% if selected_age_limit %}&age_limit={{ selected_age_limit }}{% endif %}">
                                     {{ genre.name }}</a>{% if not forloop.last %}, {% endif %}
                             {% endfor %}
@@ -39,6 +40,7 @@
                     </div>
                 </div>
             {% endfor %}
+            {% include 'cinema_app/paginator.html' %}
         {% else %}
             <h1 class="mb-4">Фільми не знайдені</h1>
         {% endif %}
