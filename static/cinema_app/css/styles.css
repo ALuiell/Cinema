@@ -27,3 +27,8 @@ body {
     padding-right: 15px; /* Создает пространство для скроллера */
     overflow-y: auto; /* Позволяет прокрутку при необходимости */
 }
+
+.btn-google {
+  background-image: linear-gradient(to right, #ff4444, #ffbb33);
+  color: white;
+}

@@ -14,7 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path
+from django.urls import path, include
 from cinema_app import custom_auth_views, views, user_views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -40,6 +40,7 @@ urlpatterns = [
     path('session/<slug:session_slug>/available_seats/', views.get_available_seats, name='available_seats'),
 
     # Authentication paths
+    path('social-auth/', include('social_django.urls', namespace='social')),
     path('accounts/register/', custom_auth_views.UserRegisterView.as_view(), name='register'),
     path('accounts/login/', custom_auth_views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
