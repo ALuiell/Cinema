@@ -11,5 +11,8 @@
         <button type="submit" class="btn btn-primary">Зареєструватися</button>
     </form>
     <p>Вже є акаунт? <a href="{% url 'login' %}">Увійдіть</a></p>
+    <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-secondary">
+              <i class="fab fa-google"></i>Увійти через Google
+    </a>
 </div>
 {% endblock %}

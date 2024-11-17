@@ -43,6 +43,12 @@ class CustomUserCreationForm(UserCreationForm):
             'email': 'Обов’язково вкажіть дійсний email.',
         }
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Ця електронна адреса вже використовується.")
+        return email
+
 
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:

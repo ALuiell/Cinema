@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from decouple import config
+from cinema_app.pipeline import check_email_exists
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -162,4 +163,17 @@ SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/profile/'
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',      # Получение данных пользователя из Google
+    'social_core.pipeline.social_auth.social_uid',          # Проверка уникального идентификатора Google
+    'social_core.pipeline.social_auth.auth_allowed',        # Проверка, разрешено ли входить с этим аккаунтом
+    'social_core.pipeline.social_auth.social_user',
+    'cinema_app.pipeline.check_email_exists',                # Поиск существующего аккаунта по соц. ID
+    'social_core.pipeline.user.get_username',               # Получение имени пользователя
+    'social_core.pipeline.user.create_user',                # Создание нового пользователя (если не найден)
+    'social_core.pipeline.social_auth.associate_user',      # Привязка Google-аккаунта к пользователю
+    'social_core.pipeline.social_auth.load_extra_data',     # Загрузка дополнительных данных (например, аватар)
+    'social_core.pipeline.user.user_details',               # Обновление данных пользователя (если он существует)
 )
