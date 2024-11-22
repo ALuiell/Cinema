@@ -7,25 +7,25 @@
 /*}*/
 
 .movie-poster {
-    width: 150px; /* Или желаемая ширина */
-    height: 150px; /* Сохранит пропорции */
+    width: 150px;
+    height: 150px;
 }
 
 footer {
-    background-color: #f8f9fa; /* Светлый фон */
+    background-color: #f8f9fa;
     padding: 10px 0;
     border-top: 1px solid #ddd;
 }
 
 html {
-    overflow-y: scroll; /* Всегда отображает вертикальный скроллер */
+    overflow-y: scroll;
 }
 
 
 body {
-    margin: 15px; /* Убирает отступы по умолчанию */
-    padding-right: 15px; /* Создает пространство для скроллера */
-    overflow-y: auto; /* Позволяет прокрутку при необходимости */
+    margin: 15px;
+    padding-right: 15px;
+    overflow-y: auto;
 }
 
 .btn-google {
