@@ -11,3 +11,4 @@
 *.iml
 .venv/
 .env
+db.sqlite3
