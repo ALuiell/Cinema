@@ -129,11 +129,37 @@ class Session(models.Model):
         return f'{self.hall} | {self.session_date} | {self.start_time}'
 
 
+class Order(models.Model):
+    PENDING = 'pending'
+    COMPLETED = 'completed'
+    CANCELLED = 'cancelled'
+
+    ORDER_STATUS_CHOICES = [
+        (PENDING, 'Pending'),
+        (COMPLETED, 'Completed'),
+        (CANCELLED, 'Cancelled'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='orders')
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default=PENDING)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def calculate_total_price(self):
+        self.total_price = sum(ticket.price for ticket in self.tickets.all())
+        self.save()
+
+    def get_seat_numbers(self):
+        return [ticket.seat_number for ticket in self.tickets.all()]
+
+
 class Ticket(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ціна", editable=False)
     seat_number = models.PositiveIntegerField(verbose_name='Номер місця', db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tickets')
 
     class Meta:
         indexes = [
