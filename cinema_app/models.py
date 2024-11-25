@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from django.contrib.postgres.fields import DateTimeRangeField
+from django.contrib.postgres.indexes import GinIndex
 from .utils import poster_upload_to, generate_session_slug
 import re
 
@@ -38,7 +40,7 @@ class Movie(models.Model):
 
     title = models.CharField(max_length=100, verbose_name='Назва')
     original_name = models.CharField(max_length=100, verbose_name='Оригінальна назва')
-    description = models.TextField(verbose_name='Опис')
+    description = models.TextField(verbose_name='Опис', default='Опис Відсутній')
     duration = models.PositiveIntegerField(verbose_name='Тривалість (хвилини)')
     genre = models.ManyToManyField(Genre, related_name='movies', verbose_name='Жанри')
     release_date = models.DateField(verbose_name='Дата випуску')
@@ -49,10 +51,10 @@ class Movie(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=['release_date']),
+            GinIndex(fields=['description'], name='description_gin_idx', opclasses=['gin_trgm_ops']),
         ]
 
     def get_absolute_url(self):
-        # Генерирует URL для страницы деталей фильма
         return reverse('movie_detail', args=[self.slug])
 
     def display_genres(self):
@@ -61,9 +63,9 @@ class Movie(models.Model):
     display_genres.short_description = 'Жанри'
 
     def clean(self):
-        pattern = r"^[A-Za-z]+$"
+        pattern = r"^[A-Za-z\s\.,;:'\"!?()\-]+$"
         if not re.match(pattern, self.original_name):
-            raise ValidationError("Original name must be on English only.")
+            raise ValidationError("Original name must be in English only.")
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.original_name)
@@ -81,6 +83,7 @@ class Session(models.Model):
     start_time = models.TimeField(verbose_name='Початок сеансу')
     end_time = models.TimeField(verbose_name='Кінець сеансу', blank=True, null=True, editable=False)
     slug = models.SlugField(max_length=255, unique=True, editable=False, blank=True)
+    session_range = DateTimeRangeField(blank=True, null=True, verbose_name='Діапазон сеансу')  # New field
 
     class Meta:
         unique_together = ('hall', 'session_date', 'start_time')
@@ -100,27 +103,22 @@ class Session(models.Model):
         return reverse('session_detail', kwargs={'slug': self.slug})
 
     def clean(self):
-        # Ensure the base ticket price is a positive number
         if self.base_ticket_price is None or self.base_ticket_price <= 0:
             raise ValidationError("The ticket price must be greater than zero.")
-
-        # Validate that the session date is today or in the future
         if self.session_date < date.today():
             raise ValidationError("The session date cannot be in the past.")
-
-        # Check if start time is provided and within the allowed range
         if self.start_time is None:
             raise ValidationError("Start time must be a valid time.")
-
         if not (time(10, 0) <= self.start_time <= time(23, 59)):
             raise ValidationError("The session must start between 10:00 AM and 12:00 AM.")
 
     def save(self, *args, **kwargs):
         if self.start_time and self.movie:
             duration = timedelta(minutes=self.movie.duration + 15)
-            datetime_start = timedelta(hours=self.start_time.hour, minutes=self.start_time.minute)
+            datetime_start = datetime.combine(self.session_date, self.start_time)
             datetime_end = datetime_start + duration
-            self.end_time = (datetime.min + datetime_end).time()
+            self.end_time = datetime_end.time()
+            self.session_range = (datetime_start, datetime_end)  # Заполняем диапазон
         self.slug = generate_session_slug(self)
         self.clean()
         super().save(*args, **kwargs)

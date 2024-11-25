@@ -43,6 +43,7 @@ class MovieListView(ListView):
             query = Q(title__icontains=search_query) | Q(description__icontains=search_query) | Q(
                 original_name__icontains=search_query)
             queryset = queryset.filter(query)
+        queryset = queryset.order_by('title')
 
         return queryset
 
