@@ -26,6 +26,12 @@ class SessionAdmin(admin.ModelAdmin):
     # exclude = ('end_time',)
 
 
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('user', 'session', 'status',)
+    readonly_fields = ('total_price', 'created_at', 'updated_at')
+
+
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
     list_display = (
@@ -38,7 +44,9 @@ class TicketAdmin(admin.ModelAdmin):
         'get_session_start_time',
         'get_session_end_time',
         'price',
+        'status',
     )
+    readonly_fields = ('created_at', 'updated_at')
     search_fields = ('user__first_name',
                      'user__last_name',
                      'session__movie__title',
