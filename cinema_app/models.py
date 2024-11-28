@@ -91,7 +91,10 @@ class Session(models.Model):
         ]
 
     def get_available_seats(self):
-        booked_tickets = Ticket.objects.filter(session=self).values_list('seat_number', flat=True)
+        booked_tickets = (Ticket.objects.filter(session=self)
+                          .exclude(status='cancelled')
+                          .values_list('seat_number',
+                                       flat=True))
         total_seats = self.hall.capacity
         available_seats = [seat for seat in range(1, total_seats + 1) if seat not in booked_tickets]
         return available_seats
@@ -135,28 +138,34 @@ class Order(models.Model):
     CANCELLED = 'cancelled'
 
     ORDER_STATUS_CHOICES = [
-        (PENDING, 'Pending'),
-        (COMPLETED, 'Completed'),
-        (CANCELLED, 'Cancelled'),
+        (PENDING, 'pending'),
+        (COMPLETED, 'completed'),
+        (CANCELLED, 'cancelled'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='orders')
-    created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default=PENDING)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def get_seat_numbers(self):
         return [ticket.seat_number for ticket in self.tickets.all()]
 
+    def __str__(self):
+        return f"Order {self.id} for {self.user.username}"
+
 
 class Ticket(models.Model):
-    RESERVED = 'Reserved'
-    BOOKED = 'Booked'
+    CANCELLED = 'cancelled'
+    RESERVED = 'reserved'
+    BOOKED = 'booked'
 
     ORDER_STATUS_CHOICES = [
-        (RESERVED, 'Reserved'),
-        (BOOKED, 'Booked'),
+        (RESERVED, 'reserved'),
+        (BOOKED, 'booked'),
+        (CANCELLED, 'cancelled'),
     ]
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ціна", editable=False)
@@ -164,6 +173,8 @@ class Ticket(models.Model):
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default=RESERVED)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tickets')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         indexes = [
