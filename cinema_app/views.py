@@ -1,4 +1,3 @@
-import json
 import locale
 
 from django.contrib import messages
@@ -11,7 +10,7 @@ from django.views.generic import ListView, TemplateView, DetailView
 from cinema import settings
 from .models import *
 from django.db.models import Q
-from .services import purchase_ticket_process
+from .services import purchase_ticket_process, process_payment
 
 
 def redirect_to_home(request):
@@ -154,12 +153,14 @@ def purchase_ticket(request, session_slug):
     ]
 
     if request.method == 'POST':
-        success, result = purchase_ticket_process(request, session)
+        # success, result, order_id = purchase_ticket_process(request, session)
+        redirect_url, order_id = purchase_ticket_process(request, session)
+        return redirect(redirect_url)
 
-        if success:
-            return redirect('success_purchase_url', session_id=result['session_id'], ticket_ids=result['ticket_ids'])
-        else:
-            messages.error(request, result)
+        # if success:
+        #     return redirect('success_purchase_url', order_id)
+        # else:
+        #     messages.error(request, result)
 
     context = {
         'session': session,
@@ -169,17 +170,47 @@ def purchase_ticket(request, session_slug):
     return render(request, 'cinema_app/purchase_ticket.html', context)
 
 
-def purchase_success(request, session_id, ticket_ids):
-    session = get_object_or_404(Session, id=session_id)
+@login_required
+def retry_payment(request, pk):
+    order = get_object_or_404(Order, id=pk)
+    redirect_url = process_payment(request, order)
+    if redirect_url:
+        return redirect(redirect_url)
+    else:
+        messages.error(request, 'Щось пішло не так')
+        return redirect('home')
 
-    ticket_ids = json.loads(ticket_ids)
-    tickets = Ticket.objects.filter(id__in=ticket_ids)
+
+def purchase_success(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order.status = Order.COMPLETED
+    order.save()
+
+    tickets = Ticket.objects.filter(order=order)
+    for ticket in tickets:
+        ticket.status = Ticket.BOOKED
+    tickets.bulk_update(tickets, ['status'])
     seat_numbers = [ticket.seat_number for ticket in tickets]
 
     context = {
         'seat_numbers': seat_numbers,
-        'price': session.base_ticket_price * len(seat_numbers),
-        'session': session,
+        'price': order.total_price,
+        'session': order.session,
     }
 
     return render(request, 'cinema_app/purchase_success.html', context)
+
+
+def purchase_cancel(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    tickets = Ticket.objects.filter(order=order)
+    seat_numbers = [ticket.seat_number for ticket in tickets]
+
+    context = {
+        'seat_numbers': seat_numbers,
+        'price': order.total_price,
+        'session': order.session,
+        'order': order,
+    }
+
+    return render(request, 'cinema_app/purchase_cancel.html', context)

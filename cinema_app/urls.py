@@ -15,10 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
-from cinema_app import custom_auth_views, views, user_views
+from cinema_app import custom_auth_views, views, user_views, services
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+
 
 urlpatterns = [
     # Main views
@@ -36,8 +37,11 @@ urlpatterns = [
 
     # Ticket purchasing
     path('purchase/<slug:session_slug>/', views.purchase_ticket, name='purchase_ticket'),
-    path('purchase_success/<int:session_id>/<str:ticket_ids>/', views.purchase_success, name='success_purchase_url'),
+    path('purchase_success/<int:order_id>/', views.purchase_success, name='success_purchase_url'),
+    path('purchase_cancel/<int:order_id>/', views.purchase_cancel, name='cancel_purchase_url'),
     path('session/<slug:session_slug>/available_seats/', views.get_available_seats, name='available_seats'),
+    # Payment
+    path('retry_purchase/order/<int:pk>', views.retry_payment, name='retry_payment'),
 
     # Authentication paths
     path('social-auth/', include('social_django.urls', namespace='social')),

@@ -1,18 +1,17 @@
-
 {% if messages %}
     <div class="container mt-4">
         {% for msg in messages %}
             {% if msg.level_tag == 'success' %}
                 <div class="alert alert-success" role="alert" style="font-size: 1.2em; border: 2px solid green;">
-                    {{ msg.message }}
+                    {{ msg.message|safe }}
                 </div>
             {% elif msg.level_tag == 'warning' %}
                 <div class="alert alert-warning" role="alert" style="font-size: 1.2em; border: 2px solid orange;">
-                    {{ msg.message }}
+                    {{ msg.message|safe }}
                 </div>
             {% else %}
                 <div class="alert alert-danger" role="alert" style="font-size: 1.2em; border: 2px solid red;">
-                    {{ msg.message }}
+                    {{ msg.message|escape }}
                 </div>
             {% endif %}
         {% endfor %}

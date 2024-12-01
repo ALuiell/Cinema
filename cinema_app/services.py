@@ -1,20 +1,82 @@
 import json
-from .models import *
+
+import stripe
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect, get_object_or_404
+
+from .models import *
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_version = settings.STRIPE_API_VERSION
 
 
-def process_payment(user, order, total_price):
-    """
-    Эмулирует процесс оплаты.
-    Возвращает True, если оплата прошла успешно, иначе False.
-    """
-    # Здесь вы интегрируете реальный платежный API
-    # Например, Stripe, PayPal или другой сервис.
-    payment_successful = True
-    if payment_successful:
-        return True
-    else:
-        return False
+# def check_payment_status(order):
+#     try:
+#         session = stripe.checkout.Session.retrieve(order.stripe_session_id)
+#
+#         if session.payment_status == 'paid':
+#             print(session.payment_status)
+#             return True
+#         else:
+#             return False
+#     except stripe.error.StripeError as e:
+#         print(f"Stripe error: {e}")
+#         return False
+#     except Exception as e:
+#         print(f"Error checking payment status for order {order.id}: {e}")
+#         return False
+
+
+def process_payment(request, order):
+    try:
+        """
+        Emulation payment process
+        return True if payment succeeded, False if payment failed.
+        """
+        success_url = request.build_absolute_uri(reverse('success_purchase_url', kwargs={
+            'order_id': order.id
+        }))
+        cancel_url = request.build_absolute_uri(reverse('cancel_purchase_url', kwargs={
+            'order_id': order.id
+        }))
+
+        session_data = {
+            'mode': 'payment',
+            'client_reference_id': order.id,
+            'success_url': success_url,
+            'cancel_url': cancel_url,
+            'line_items': [],
+        }
+
+        for ticket in Ticket.objects.filter(order_id=order.id):
+            session_data['line_items'].append({
+                'price_data': {
+                    'currency': 'UAH',
+                    'product_data': {
+                        'name': f'Квиток на "{ticket.session.movie.title}"',
+                        'description': f'Сеанс: {ticket.session.start_time} {ticket.session.session_date}, '
+                                       f'Місце: {ticket.seat_number}',
+                    },
+                    'unit_amount': int(ticket.session.base_ticket_price * 100),
+                },
+                'quantity': 1,
+            })
+
+        session = stripe.checkout.Session.create(**session_data)
+
+        order.stripe_session_id = session.id
+        order.save()
+
+        # return redirect_url in purchase_ticket_process
+        return session.url
+
+    except stripe.error.StripeError as e:
+        print(f"Stripe error: {str(e)}")
+        return None
 
 
 def purchase_ticket_process(request, session):
@@ -28,7 +90,8 @@ def purchase_ticket_process(request, session):
         total_price = price * len(selected_seats)
 
         with transaction.atomic():
-            order = Order.objects.create(user=request.user, session=session)
+            order = Order.objects.create(user=request.user, session=session, total_price=total_price,
+                                         status=Order.PENDING)
             tickets = []
 
             existing_tickets = set(
@@ -41,20 +104,19 @@ def purchase_ticket_process(request, session):
                     return False, f"Місце {seat} вже зайняте"
 
                 ticket = Ticket.objects.create(
-                    session=session, user=request.user, seat_number=seat, price=price, order=order
+                    session=session, user=request.user, seat_number=seat, status=Ticket.RESERVED, price=price,
+                    order=order
                 )
                 tickets.append(ticket)
 
-            if not process_payment(request.user, order, total_price):
-                raise Exception("Оплата не пройшла. Замовлення не створено.")
+            # Вызываем process_payment и проверяем результат
+            redirect_url = process_payment(request, order)
 
-            # Меняем статус заказа на 'completed'
-            order.status = 'completed'
-            order.calculate_total_price()
-            order.save()
+            if not redirect_url:
+                return False, "Оплата не прошла. Спробуйте ще раз", order.id
 
-        ticket_ids = [ticket.id for ticket in tickets]
-        return True, {'session_id': session.id, 'ticket_ids': json.dumps(ticket_ids)}
+            # return redirect_url in main function purchase_ticket
+            return redirect_url, order.id
 
     except ValueError:
         return False, "Неправильний номер місця"

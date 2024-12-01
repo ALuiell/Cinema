@@ -149,6 +149,7 @@ class Order(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    stripe_session_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
 
     def get_seat_numbers(self):
         return [ticket.seat_number for ticket in self.tickets.all()]

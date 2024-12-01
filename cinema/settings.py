@@ -177,3 +177,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',     # Загрузка дополнительных данных (например, аватар)
     'social_core.pipeline.user.user_details',               # Обновление данных пользователя (если он существует)
 )
+
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_API_VERSION = '2024-11-20.acacia'
