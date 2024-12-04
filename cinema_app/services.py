@@ -2,33 +2,12 @@ import json
 
 import stripe
 from django.conf import settings
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, get_object_or_404
 
 from .models import *
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 stripe.api_version = settings.STRIPE_API_VERSION
-
-
-# def check_payment_status(order):
-#     try:
-#         session = stripe.checkout.Session.retrieve(order.stripe_session_id)
-#
-#         if session.payment_status == 'paid':
-#             print(session.payment_status)
-#             return True
-#         else:
-#             return False
-#     except stripe.error.StripeError as e:
-#         print(f"Stripe error: {e}")
-#         return False
-#     except Exception as e:
-#         print(f"Error checking payment status for order {order.id}: {e}")
-#         return False
 
 
 def process_payment(request, order):
@@ -109,7 +88,6 @@ def purchase_ticket_process(request, session):
                 )
                 tickets.append(ticket)
 
-            # Вызываем process_payment и проверяем результат
             redirect_url = process_payment(request, order)
 
             if not redirect_url:

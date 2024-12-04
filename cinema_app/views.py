@@ -157,11 +157,6 @@ def purchase_ticket(request, session_slug):
         redirect_url, order_id = purchase_ticket_process(request, session)
         return redirect(redirect_url)
 
-        # if success:
-        #     return redirect('success_purchase_url', order_id)
-        # else:
-        #     messages.error(request, result)
-
     context = {
         'session': session,
         'seats': seats_by_row,

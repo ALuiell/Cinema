@@ -149,13 +149,25 @@ class Order(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    stripe_session_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
 
     def get_seat_numbers(self):
-        return [ticket.seat_number for ticket in self.tickets.all()]
+        return ', '.join(str(ticket.seat_number) for ticket in self.tickets.all())
 
     def __str__(self):
         return f"Order {self.id} for {self.user.username}"
+
+    def clean(self):
+        if not self.user:
+            raise ValidationError("User must be specified for the order.")
+
+        if not self.session:
+            raise ValidationError("Session must be specified for the order.")
+
+        if self.status not in dict(self.ORDER_STATUS_CHOICES):
+            raise ValidationError("Invalid status for the order.")
+
+        if self.total_price < 0:
+            raise ValidationError("Total price cannot be negative.")
 
 
 class Ticket(models.Model):

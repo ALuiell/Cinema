@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
-from cinema_app import custom_auth_views, views, user_views, services
+from cinema_app import custom_auth_views, views, user_profile_views, services
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
@@ -57,9 +57,9 @@ urlpatterns = [
     path('accounts/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 
     # User profile views
-    path('profile/', user_views.UserProfileView.as_view(), name='profile'),
-    path('profile/tickets/', user_views.UserTicketListView.as_view(), name='user_tickets'),
-    path('profile/settings/', user_views.UserProfileSettingsView.as_view(), name='profile_settings'),
+    path('profile/', user_profile_views.UserProfileView.as_view(), name='profile'),
+    path('profile/orders/', user_profile_views.UserOrderListView.as_view(), name='user_orders'),
+    path('profile/settings/', user_profile_views.UserProfileSettingsView.as_view(), name='profile_settings'),
 ]
 
 # Static files (only in DEBUG mode)

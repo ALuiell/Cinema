@@ -34,9 +34,10 @@ class UserProfileSettingsView(LoginRequiredMixin, UpdateView):
         return super().form_invalid(form)
 
 
-class UserTicketListView(ListView):
-    model = Ticket
-    template_name = 'profile/ticket_list.html'
+class UserOrderListView(ListView):
+    model = Order
+    template_name = 'profile/order_list.html'
+    paginate_by = 3
 
     def get_queryset(self):
-        return Ticket.objects.filter(user=self.request.user)
+        return Order.objects.filter(user=self.request.user).order_by('created_at')
