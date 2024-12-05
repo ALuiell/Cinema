@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'django_extensions',
+    'django_celery_beat',
     'cinema_app',
+    'background_task',
 ]
 
 MIDDLEWARE = [
@@ -181,3 +183,17 @@ SOCIAL_AUTH_PIPELINE = (
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
 STRIPE_API_VERSION = '2024-11-20.acacia'
+
+
+# DEBUG TOOLBAR
+INTERNAL_IPS = [
+    '127.0.0.1',
+    '172.17.0.1',  # Пример для Docker
+]
+
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
