@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 from decouple import config
 from cinema_app.pipeline import check_email_exists
-
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,9 +44,9 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'django_extensions',
-    'django_celery_beat',
+    # 'django_celery_beat',
     'cinema_app',
-    'background_task',
+    # 'background_task',
 ]
 
 MIDDLEWARE = [
@@ -90,6 +90,17 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'mydatabase',
+#         'USER': 'myuser',
+#         'PASSWORD': 'mypassword',
+#         'HOST': 'host.docker.internal',
+#         'PORT': '5432',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -188,12 +199,20 @@ STRIPE_API_VERSION = '2024-11-20.acacia'
 # DEBUG TOOLBAR
 INTERNAL_IPS = [
     '127.0.0.1',
-    '172.17.0.1',  # Пример для Docker
+    '172.17.0.1',
 ]
 
 
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
+# CELERY_BROKER_URL = 'redis://host.docker.internal:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://host.docker.internal:6379/0'
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_TIMEZONE = TIME_ZONE
+#
+#
+# CELERY_BEAT_SCHEDULE = {
+#     'run-periodic-task': {
+#         'task': 'cinema_app.tasks.cancel_unpaid_orders',
+#         'schedule': crontab(minute='*/1'),  # Задача будет выполняться каждую минуту
+#     },
+# }
