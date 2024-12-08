@@ -206,6 +206,6 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     'run-periodic-task': {
         'task': 'cinema_app.tasks.cancel_unpaid_orders',
-        'schedule': crontab(minute='*/1'),  # Задача будет выполняться каждую минуту
+        'schedule': crontab(minute='*/1'),
     },
 }
