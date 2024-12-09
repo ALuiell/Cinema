@@ -126,8 +126,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 
 # Media files
 MEDIA_URL = '/media/'
@@ -167,17 +165,18 @@ AUTHENTICATION_BACKENDS = (
 )
 
 SOCIAL_AUTH_PIPELINE = (
-    'social_core.pipeline.social_auth.social_details',      # Получение данных пользователя из Google
-    'social_core.pipeline.social_auth.social_uid',          # Проверка уникального идентификатора Google
-    'social_core.pipeline.social_auth.auth_allowed',        # Проверка, разрешено ли входить с этим аккаунтом
-    'social_core.pipeline.social_auth.social_user',
-    'cinema_app.pipeline.check_email_exists',                # Поиск существующего аккаунта по соц. ID
-    'social_core.pipeline.user.get_username',               # Получение имени пользователя
-    'social_core.pipeline.user.create_user',                # Создание нового пользователя (если не найден)
-    'social_core.pipeline.social_auth.associate_user',      # Привязка Google-аккаунта к пользователю
-    'social_core.pipeline.social_auth.load_extra_data',     # Загрузка дополнительных данных (например, аватар)
-    'social_core.pipeline.user.user_details',               # Обновление данных пользователя (если он существует)
+    'social_core.pipeline.social_auth.social_details',      # Retrieve user details from Google
+    'social_core.pipeline.social_auth.social_uid',          # Check the unique identifier from Google
+    'social_core.pipeline.social_auth.auth_allowed',        # Verify if authentication is allowed for this account
+    'social_core.pipeline.social_auth.social_user',         # Get the social user object
+    'cinema_app.pipeline.check_email_exists',               # Check if an existing account matches the social ID
+    'social_core.pipeline.user.get_username',               # Generate a username for the user
+    'social_core.pipeline.user.create_user',                # Create a new user if no match is found
+    'social_core.pipeline.social_auth.associate_user',      # Link the Google account to the user
+    'social_core.pipeline.social_auth.load_extra_data',     # Load additional data (e.g., avatar, extra fields)
+    'social_core.pipeline.user.user_details',               # Update user details if the account already exists
 )
+
 
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
