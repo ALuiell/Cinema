@@ -178,6 +178,11 @@ def retry_payment(request, pk):
 
 def purchase_success(request, order_id):
     order = get_object_or_404(Order, id=order_id)
+
+    if order.user != request.user:
+        messages.error(request, "You are not allowed to view this order.")
+        return redirect('home')
+
     order.status = Order.COMPLETED
     order.save()
 
@@ -185,7 +190,7 @@ def purchase_success(request, order_id):
     for ticket in tickets:
         ticket.status = Ticket.BOOKED
     tickets.bulk_update(tickets, ['status'])
-    seat_numbers = [ticket.seat_number for ticket in tickets]
+    seat_numbers = order.get_seat_numbers()
 
     context = {
         'seat_numbers': seat_numbers,
@@ -198,8 +203,12 @@ def purchase_success(request, order_id):
 
 def purchase_cancel(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    tickets = Ticket.objects.filter(order=order)
-    seat_numbers = [ticket.seat_number for ticket in tickets]
+
+    if order.user != request.user:
+        messages.error(request, "You are not allowed to view this order.")
+        return redirect('home')
+
+    seat_numbers = order.get_seat_numbers()
 
     context = {
         'seat_numbers': seat_numbers,
