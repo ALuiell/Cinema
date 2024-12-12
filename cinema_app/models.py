@@ -61,9 +61,9 @@ class Movie(models.Model):
     display_genres.short_description = 'Жанри'
 
     def clean(self):
-        pattern = r"^[A-Za-z]+$"
+        pattern = r"^[A-Za-z0-9\s:,'\-&!?.]+$"
         if not re.match(pattern, self.original_name):
-            raise ValidationError("Original name must be on English only.")
+            raise ValidationError("Original name must contain only English characters, numbers, and valid punctuation.")
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.original_name)
@@ -108,15 +108,20 @@ class Session(models.Model):
             raise ValidationError("The ticket price must be greater than zero.")
 
         # Validate that the session date is today or in the future
-        if self.session_date < date.today():
+        if self.session_date is None:
+            raise ValidationError("The session date cannot be empty.")
+        elif self.session_date < date.today():
             raise ValidationError("The session date cannot be in the past.")
 
         # Check if start time is provided and within the allowed range
         if self.start_time is None:
             raise ValidationError("Start time must be a valid time.")
-
-        if not (time(10, 0) <= self.start_time <= time(23, 59)):
+        elif not (time(10, 0) <= self.start_time <= time(23, 59)):
             raise ValidationError("The session must start between 10:00 AM and 12:00 AM.")
+
+        # Ensure the session date and start time are logically consistent
+        if self.session_date == date.today() and self.start_time < datetime.now().time():
+            raise ValidationError("The session start time cannot be in the past.")
 
     def save(self, *args, **kwargs):
         if self.start_time and self.movie:

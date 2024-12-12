@@ -2,10 +2,10 @@ from datetime import timedelta
 from django.utils.timezone import now
 from cinema_app.models import Order, Ticket
 # from background_task import background
-from celery import shared_task
 
 # @background(schedule=timedelta(minutes=1)) # background_tasks
-@shared_task
+
+
 def cancel_unpaid_orders():
     expiration_time = timedelta(minutes=15)
     current_time = now()

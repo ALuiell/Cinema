@@ -13,7 +13,6 @@ import os
 from pathlib import Path
 from decouple import config
 from cinema_app.pipeline import check_email_exists
-from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

@@ -23,6 +23,9 @@ class MovieAdmin(admin.ModelAdmin):
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
     list_display = ('hall', 'movie', 'session_date', 'start_time', 'end_time')
+    help_texts = {
+        'session_date': 'Enter the date in the format: DD/MM/YYYY',
+    }
     # exclude = ('end_time',)
 
 
