@@ -162,7 +162,7 @@ def purchase_ticket(request, session_slug):
         'seats': seats_by_row,
     }
 
-    return render(request, 'cinema_app/purchase_ticket.html', context)
+    return render(request, 'payments/purchase_ticket.html', context)
 
 
 @login_required
@@ -198,7 +198,7 @@ def purchase_success(request, order_id):
         'session': order.session,
     }
 
-    return render(request, 'cinema_app/purchase_success.html', context)
+    return render(request, 'payments/purchase_success.html', context)
 
 
 def purchase_cancel(request, order_id):
@@ -217,4 +217,4 @@ def purchase_cancel(request, order_id):
         'order': order,
     }
 
-    return render(request, 'cinema_app/purchase_cancel.html', context)
+    return render(request, 'payments/purchase_cancel.html', context)
