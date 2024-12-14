@@ -52,7 +52,6 @@ class Movie(models.Model):
         ]
 
     def get_absolute_url(self):
-        # Генерирует URL для страницы деталей фильма
         return reverse('movie_detail', args=[self.slug])
 
     def display_genres(self):

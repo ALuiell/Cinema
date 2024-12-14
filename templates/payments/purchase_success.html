@@ -6,12 +6,16 @@
 
     <p>Фільм: {{ session.movie.title }}</p>
     <p>Зал: {{ session.hall }}</p>
+<<<<<<< Updated upstream:templates/payments/purchase_success.html
     <p>Місця: {{ seat_numbers }}
     </p>
+=======
+    <p>Місця: {{ seat_numbers }}</p>
+>>>>>>> Stashed changes:templates/cinema_app/purchase_success.html
     <p>Ціна: {{ price }} грн</p>
     <p>Дата сеансу: {{ session.session_date|date:"d.m.Y" }}</p>
     <p>Початок сеансу: {{ session.start_time|time:"H:i" }}</p>
-    
+
     <div class="mt-4">
         <a href="{% url 'home' %}" class="btn btn-primary">Повернутися на головну</a>
         <a href="{% url 'user_orders' %}" class="btn btn-secondary">Мої замовлення</a>

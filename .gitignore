@@ -12,3 +12,6 @@
 .venv/
 .env
 db.sqlite3
+cinema/settings_prod.py
+manage.py
+cinema/wsgi.py
