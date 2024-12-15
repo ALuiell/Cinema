@@ -201,8 +201,6 @@ INTERNAL_IPS = [
     '172.17.0.1',
 ]
 
-
-
 # CELERY_BROKER_URL = config('REDIS_URL')
 # CELERY_RESULT_BACKEND = config('REDIS_URL')
 # CELERY_ACCEPT_CONTENT = ['json']

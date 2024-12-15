@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
 
+
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body.decode('utf-8')  # Раскодируем тело запроса
