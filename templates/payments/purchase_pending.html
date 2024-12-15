@@ -21,14 +21,21 @@
 <script>
     const checkStatus = () => {
         fetch(`/order-status/{{ order.id }}/`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                if (data.status === 'COMPLETED') {
+                console.log('Response data:', data); // Логируем данные
+                if (data.status === 'completed') {
                     window.location.href = `/purchase-success/{{ order.id }}/`;
                 }
             })
-            .catch(error => console.error('Ошибка при обновлении статуса', error));
+            .catch(error => console.error('Ошибка при обновлении статуса:', error));
     };
-
+    
     setInterval(checkStatus, 3000);
+
 </script>
