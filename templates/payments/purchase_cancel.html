@@ -6,8 +6,7 @@
 
     <p>Фільм: {{ session.movie.title }}</p>
     <p>Зал: {{ session.hall }}</p>
-    <p>Місця: {{ seat_numbers }}
-    </p>
+    <p>Місця: {{ seat_numbers }}</p>
     <p>Ціна: {{ price }} грн</p>
     <p>Дата сеансу: {{ session.session_date|date:"d.m.Y" }}</p>
     <p>Початок сеансу: {{ session.start_time|time:"H:i" }}</p>

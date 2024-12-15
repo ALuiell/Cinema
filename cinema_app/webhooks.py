@@ -2,8 +2,10 @@ import stripe
 from django.conf import settings
 from django.http import HttpResponse
 from .models import Order, Ticket
+import logging
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+logger = logging.getLogger(__name__)
 
 
 def stripe_webhook(request):
@@ -13,7 +15,8 @@ def stripe_webhook(request):
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except (ValueError, stripe.error.SignatureVerificationError):
+    except stripe.error.SignatureVerificationError as e:
+        logger.error(f"Invalid signature: {e}")
         return HttpResponse(status=400)
 
     if event['type'] == 'checkout.session.completed':
@@ -29,6 +32,7 @@ def stripe_webhook(request):
                     ticket.status = Ticket.BOOKED
                 tickets.bulk_update(tickets, ['status'])
         except Order.DoesNotExist:
-            return HttpResponse(status=404)
+            logger.warning(f"Order with ID {order_id} not found during webhook processing.")
+            return HttpResponse(status=400)
 
     return HttpResponse(status=200)

@@ -3,11 +3,14 @@ import json
 import stripe
 from django.conf import settings
 from django.db import transaction
-
+import logging
 from .models import *
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 stripe.api_version = settings.STRIPE_API_VERSION
+
+
+logger = logging.getLogger(__name__)
 
 
 def process_payment(request, order):
@@ -16,7 +19,7 @@ def process_payment(request, order):
         Emulation payment process
         return True if payment succeeded, False if payment failed.
         """
-        success_url = request.build_absolute_uri(reverse('success_purchase_url', kwargs={
+        success_url = request.build_absolute_uri(reverse('purchase_pending', kwargs={
             'order_id': order.id
         }))
         cancel_url = request.build_absolute_uri(reverse('cancel_purchase_url', kwargs={
@@ -51,7 +54,7 @@ def process_payment(request, order):
         return session.url
 
     except stripe.error.StripeError as e:
-        print(f"Stripe error: {str(e)}")
+        logger.error(f"Stripe error: {str(e)}")
         return None
 
 

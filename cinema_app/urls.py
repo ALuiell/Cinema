@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
-from cinema_app import custom_auth_views, views, user_profile_views, services
+from cinema_app import custom_auth_views, views, user_profile_views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
@@ -37,11 +37,15 @@ urlpatterns = [
 
     # Ticket purchasing
     path('purchase/<slug:session_slug>/', views.purchase_ticket, name='purchase_ticket'),
-    path('purchase_success/<int:order_id>/', views.purchase_success, name='success_purchase_url'),
-    path('purchase_cancel/<int:order_id>/', views.purchase_cancel, name='cancel_purchase_url'),
+    path('purchase-pending/', views.purchase_pending, name='purchase_pending'),
+    path('purchase-success/<int:order_id>/', views.purchase_success, name='success_purchase_url'),
+    path('purchase-cancel/<int:order_id>/', views.purchase_cancel, name='cancel_purchase_url'),
     path('session/<slug:session_slug>/available_seats/', views.get_available_seats, name='available_seats'),
     # Payment
-    path('retry_purchase/order/<int:pk>', views.retry_payment, name='retry_payment'),
+    path('retry-purchase/order/<int:pk>', views.retry_payment, name='retry_payment'),
+
+    path('order-status/<int:order_id>/', views.check_order_status, name='order_status'),
+
 
     # Authentication paths
     path('social-auth/', include('social_django.urls', namespace='social')),

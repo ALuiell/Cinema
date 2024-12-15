@@ -7,6 +7,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.views.decorators.cache import cache_control
 from django.views.generic import ListView, TemplateView, DetailView
+
 from cinema import settings
 from .models import *
 from django.db.models import Q
@@ -176,6 +177,22 @@ def retry_payment(request, pk):
         return redirect('home')
 
 
+def check_order_status(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    if order.user != request.user:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    return JsonResponse({'status': order.status})
+
+
+def purchase_pending(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    context = {
+        'order': order,
+    }
+    return render(request, 'payments/purchase_pending.html', context)
+
+
 def purchase_success(request, order_id):
     order = get_object_or_404(Order, id=order_id)
 
@@ -183,13 +200,6 @@ def purchase_success(request, order_id):
         messages.error(request, "You are not allowed to view this order.")
         return redirect('home')
 
-    order.status = Order.COMPLETED
-    order.save()
-
-    tickets = Ticket.objects.filter(order=order)
-    for ticket in tickets:
-        ticket.status = Ticket.BOOKED
-    tickets.bulk_update(tickets, ['status'])
     seat_numbers = order.get_seat_numbers()
 
     context = {
