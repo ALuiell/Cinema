@@ -47,9 +47,6 @@ def process_payment(request, order):
 
         session = stripe.checkout.Session.create(**session_data)
 
-        order.stripe_session_id = session.id
-        order.save()
-
         # return redirect_url in purchase_ticket_process
         return session.url
 
