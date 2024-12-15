@@ -52,13 +52,14 @@ def stripe_webhook(request):
 
             # Проверяем статус оплаты
             if session.get('payment_status') == 'paid':
-                order.status = Order.COMPLETED
-                order.save()
-                tickets = Ticket.objects.filter(order=order)
-                for ticket in tickets:
-                    ticket.status = Ticket.BOOKED
-                tickets.bulk_update(tickets, ['status'])
-                logger.info(f"Order {order.id} marked as COMPLETED")
+                if order.status == Order.PENDING:
+                    order.status = Order.COMPLETED
+                    order.save()
+                    tickets = Ticket.objects.filter(order=order)
+                    for ticket in tickets:
+                        ticket.status = Ticket.BOOKED
+                    tickets.bulk_update(tickets, ['status'])
+                    logger.info(f"Order {order.id} marked as COMPLETED")
             else:
                 logger.warning(f"Payment not completed for order {order.id}")
 

@@ -31,8 +31,12 @@ class SessionAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('user', 'session', 'status',)
+    list_display = ('id', 'user', 'session', 'display_seat_numbers', 'status',)
     readonly_fields = ('total_price', 'created_at', 'updated_at')
+
+    def display_seat_numbers(self, obj):
+        return obj.get_seat_numbers()
+    display_seat_numbers.short_description = 'Місця'
 
 
 @admin.register(Ticket)
@@ -63,7 +67,7 @@ class TicketAdmin(admin.ModelAdmin):
     )
 
     def get_user_full_name(self, obj):
-        return f'{obj.user.first_name} {obj.user.last_name}'
+        return obj.session.movie.display_genres()
     get_user_full_name.short_description = 'Користувач'
 
     def get_movie_title(self, obj):
