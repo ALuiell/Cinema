@@ -67,26 +67,21 @@ def purchase_ticket_process(request, session):
         selected_seats = json.loads(selected_seats)
         price = session.base_ticket_price
         total_price = price * len(selected_seats)
+        free_seats = session.get_available_seats()
 
         with transaction.atomic():
             order = Order.objects.create(user=request.user, session=session, total_price=total_price,
                                          status=Order.PENDING)
-            tickets = []
-
-            existing_tickets = set(
-                Ticket.objects.filter(session=session).values_list('seat_number', flat=True)
-            )
 
             for seat in selected_seats:
                 seat = int(seat)
-                if seat in existing_tickets:
+                if seat not in free_seats:
                     return False, {'error_message': f"Місце {seat} вже зайняте"}
 
                 ticket = Ticket.objects.create(
                     session=session, user=request.user, seat_number=seat, status=Ticket.RESERVED, price=price,
                     order=order
                 )
-                tickets.append(ticket)
 
             redirect_url = process_payment(request, order)
 
