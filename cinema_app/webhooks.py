@@ -6,6 +6,14 @@ import logging
 from django.views.decorators.csrf import csrf_exempt
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+logging.basicConfig(
+    filename='webhooks.py',  # Имя файла для логов
+    level=logging.INFO,               # Уровень логирования
+    format='%(asctime)s - %(levelname)s - %(message)s',  # Формат сообщения
+)
+
 logger = logging.getLogger(__name__)
 
 
