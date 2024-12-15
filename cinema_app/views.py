@@ -190,8 +190,10 @@ def check_order_status(request, order_id):
 
 def purchase_pending(request, order_id):
     order = get_object_or_404(Order, id=order_id)
+    seat_numbers = order.get_seat_numbers()
     context = {
         'order': order,
+        'seat_numbers': seat_numbers,
     }
     return render(request, 'payments/purchase_pending.html', context)
 

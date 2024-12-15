@@ -12,7 +12,7 @@
     <p><strong>Номер замовлення:</strong> {{ order.id }}</p>
     <p><strong>Фільм:</strong> {{ order.session.movie.title }}</p>
     <p><strong>Сеанс:</strong> {{ order.session.start_time }} {{ order.session.session_date }}</p>
-    <p><strong>Місця:</strong> {{ order.get_seat_numbers|join:', ' }}</p>
+    <p><strong>Місця:</strong> {{ seat_numbers }}</p>
     <p><strong>Сума:</strong> {{ order.total_price }} грн</p>
 </div>
 {% endblock %}
