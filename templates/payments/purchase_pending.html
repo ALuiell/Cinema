@@ -16,8 +16,6 @@
     <p><strong>Місця:</strong> {{ seat_numbers }}</p>
     <p><strong>Сума:</strong> {{ order.total_price }} грн</p>
 </div>
-{% endblock %}
-
 <script>
     const checkStatus = () => {
         fetch(`/order-status/{{ order.id }}/`)
@@ -28,14 +26,14 @@
                 return response.json();
             })
             .then(data => {
-                console.log('Response data:', data); // Логируем данные
-                if (data.status === 'completed') {
+                console.log('Response data:', data); 
+                if (data.status === 'completed') {  
                     window.location.href = `/purchase-success/{{ order.id }}/`;
                 }
             })
             .catch(error => console.error('Ошибка при обновлении статуса:', error));
     };
-    
-    setInterval(checkStatus, 3000);
 
+    setInterval(checkStatus, 3000); 
 </script>
+{% endblock %}
