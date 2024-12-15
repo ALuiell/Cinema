@@ -10,11 +10,12 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def stripe_webhook(request):
-    payload = request.body.decode('utf-8')
+    payload = request.body.decode('utf-8')  # Раскодируем тело запроса
     sig_header = request.headers.get("Stripe-Signature")
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
     try:
+        # Проверка подписи Stripe
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
         logger.info(f"Received event: {event['type']}")
     except ValueError as e:
@@ -24,19 +25,23 @@ def stripe_webhook(request):
         logger.error(f"Invalid signature: {str(e)}")
         return JsonResponse({'error': 'Invalid signature'}, status=400)
 
+    # Обработка события `checkout.session.completed`
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         logger.info(f"Session data: {session}")
 
+        # Получение ID заказа
         order_id = session.get('client_reference_id')
         if not order_id:
             logger.error("Missing 'client_reference_id'")
             return JsonResponse({'error': "Missing 'client_reference_id'"}, status=400)
 
         try:
+            # Ищем заказ в базе данных
             order = Order.objects.get(id=order_id)
             logger.info(f"Found order {order.id}")
 
+            # Проверяем статус оплаты
             if session.get('payment_status') == 'paid':
                 order.status = Order.COMPLETED
                 order.save()
