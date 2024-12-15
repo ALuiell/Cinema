@@ -11,8 +11,8 @@
     <h2>Деталі замовлення</h2>
     <p><strong>Номер замовлення:</strong> {{ order.id }}</p>
     <p><strong>Фільм:</strong> {{ order.session.movie.title }}</p>
-    <p><strong>Дата сеансу:</strong> {{ session.session_date|date:"d.m.Y" }}</p>
-    <p><strong>Початок сеансу:</strong> {{ session.start_time|time:"H:i" }}</p>
+    <p><strong>Дата сеансу:</strong> {{ order.session.session_date|date:"d.m.Y" }}</p>
+    <p><strong>Початок сеансу:</strong> {{ order.session.start_time|time:"H:i" }}</p>
     <p><strong>Місця:</strong> {{ seat_numbers }}</p>
     <p><strong>Сума:</strong> {{ order.total_price }} грн</p>
 </div>
