@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
-from cinema_app import custom_auth_views, views, user_profile_views
+from cinema_app import custom_auth_views, views, user_profile_views, webhooks
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
@@ -45,6 +45,7 @@ urlpatterns = [
     path('retry-purchase/order/<int:pk>', views.retry_payment, name='retry_payment'),
 
     path('order-status/<int:order_id>/', views.check_order_status, name='order_status'),
+    path('stripe-webhook/', webhooks.stripe_webhook, name='stripe_webhook'),
 
 
     # Authentication paths
