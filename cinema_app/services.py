@@ -61,7 +61,7 @@ def process_payment(request, order):
 def purchase_ticket_process(request, session):
     selected_seats = request.POST.get('selected_seats')
     if not selected_seats:
-        return False, "Не вибрано місце"
+        return False, {'error_message': "Не вибрано місце"}
 
     try:
         selected_seats = json.loads(selected_seats)
@@ -80,7 +80,7 @@ def purchase_ticket_process(request, session):
             for seat in selected_seats:
                 seat = int(seat)
                 if seat in existing_tickets:
-                    return False, f"Місце {seat} вже зайняте"
+                    return False, {'error_message': f"Місце {seat} вже зайняте"}
 
                 ticket = Ticket.objects.create(
                     session=session, user=request.user, seat_number=seat, status=Ticket.RESERVED, price=price,
@@ -91,10 +91,10 @@ def purchase_ticket_process(request, session):
             redirect_url = process_payment(request, order)
 
             if not redirect_url:
-                return False, "Оплата не прошла. Спробуйте ще раз", order.id
+                return False, {'error_message': f"Оплата не прошла. Спробуйте ще раз"}
 
             # return redirect_url in main function purchase_ticket
-            return redirect_url, order.id
+            return True, {'redirect_url': redirect_url}
 
     except ValueError:
         return False, "Неправильний номер місця"

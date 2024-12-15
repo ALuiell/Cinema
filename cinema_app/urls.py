@@ -37,7 +37,7 @@ urlpatterns = [
 
     # Ticket purchasing
     path('purchase/<slug:session_slug>/', views.purchase_ticket, name='purchase_ticket'),
-    path('purchase-pending/', views.purchase_pending, name='purchase_pending'),
+    path('purchase-pending/<int:order_id>/', views.purchase_pending, name='purchase_pending'),
     path('purchase-success/<int:order_id>/', views.purchase_success, name='success_purchase_url'),
     path('purchase-cancel/<int:order_id>/', views.purchase_cancel, name='cancel_purchase_url'),
     path('session/<slug:session_slug>/available_seats/', views.get_available_seats, name='available_seats'),

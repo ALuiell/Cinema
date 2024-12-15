@@ -155,8 +155,11 @@ def purchase_ticket(request, session_slug):
 
     if request.method == 'POST':
         # success, result, order_id = purchase_ticket_process(request, session)
-        redirect_url, order_id = purchase_ticket_process(request, session)
-        return redirect(redirect_url)
+        success, data = purchase_ticket_process(request, session)
+        if not success:
+            messages.error(request, data["error_message"])
+        else:
+            return redirect(data['redirect_url'])
 
     context = {
         'session': session,
