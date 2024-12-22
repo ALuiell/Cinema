@@ -40,4 +40,4 @@ class UserOrderListView(ListView):
     paginate_by = 3
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user).order_by('created_at')
+        return Order.objects.filter(user=self.request.user).order_by('-created_at')

@@ -43,6 +43,7 @@ class OrderAdmin(admin.ModelAdmin):
 class TicketAdmin(admin.ModelAdmin):
     list_display = (
         'get_user_full_name',
+        'get_order_id',
         'get_movie_title',
         'get_genres',
         'get_hall_name',
@@ -66,8 +67,13 @@ class TicketAdmin(admin.ModelAdmin):
         'session__end_time',
     )
 
+    def get_order_id(self, obj):
+        return obj.order.id
+
+    get_order_id.short_description = 'Номер заказа'
+
     def get_user_full_name(self, obj):
-        return obj.session.movie.display_genres()
+        return f'{obj.user.first_name} {obj.user.last_name}'
     get_user_full_name.short_description = 'Користувач'
 
     def get_movie_title(self, obj):
