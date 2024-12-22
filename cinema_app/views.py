@@ -37,7 +37,7 @@ class MovieListView(ListView):
         search_query = self.request.GET.get('search', '').strip()
 
         # Validate and filter the genres by ensuring they are numeric IDs
-        if selected_genres and "" not in selected_genres:
+        if selected_genres:
             valid_genres = [genre for genre in selected_genres if genre.isdigit()]  # Убедиться, что ID жанра — числа
             if valid_genres:
                 queryset = queryset.filter(genre__id__in=valid_genres).distinct()
