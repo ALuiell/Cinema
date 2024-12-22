@@ -30,18 +30,30 @@ class MovieListView(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        # Retrieve query parameters from the request
         selected_genres = self.request.GET.getlist('genre')
         age_limit = self.request.GET.get('age_limit')
-        search_query = self.request.GET.get('search', '')
+        search_query = self.request.GET.get('search', '').strip()
 
-        if selected_genres and "" not in selected_genres:
-            queryset = queryset.filter(genre__id__in=selected_genres).distinct()
-        if age_limit:
-            queryset = queryset.filter(age_limit=age_limit)
+        # Validate and filter the genres by ensuring they are numeric IDs
+        if selected_genres:
+            valid_genres = [genre for genre in selected_genres if genre.isdigit()]  # Убедиться, что ID жанра — числа
+            if valid_genres:
+                queryset = queryset.filter(genre__id__in=valid_genres).distinct()
+
+        # Validate and filter the age limit by ensuring it's a valid integer
+        if age_limit and age_limit.isdigit():
+            queryset = queryset.filter(age_limit=int(age_limit))
+
+        # Validate and filter the search query by cleaning and formatting the input
         if search_query:
             search_query = search_query.capitalize()
-            query = Q(title__icontains=search_query) | Q(description__icontains=search_query) | Q(
-                original_name__icontains=search_query)
+            query = (
+                    Q(title__icontains=search_query) |
+                    Q(description__icontains=search_query) |
+                    Q(original_name__icontains=search_query)
+            )
             queryset = queryset.filter(query)
 
         return queryset
