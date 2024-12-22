@@ -152,18 +152,7 @@ def get_available_seats(request, session_slug):
 @login_required
 def purchase_ticket(request, session_slug):
     session = get_object_or_404(Session, slug=session_slug)
-    available_seats = session.get_available_seats()
-    seats_per_row = 10
-    row_capacity = session.hall.capacity // seats_per_row
-    # List comprehension to create seat data with unique IDs and their availability status
-    seats_by_row = [
-        [
-            (row * seats_per_row + seat_number,
-             'Free' if (row * seats_per_row + seat_number) in available_seats else 'Booked')
-            for seat_number in range(1, seats_per_row + 1)
-        ]
-        for row in range(row_capacity)
-    ]
+    seats_by_row = session.get_seats_by_row()
 
     if request.method == 'POST':
         # success, result, order_id = purchase_ticket_process(request, session)

@@ -98,6 +98,20 @@ class Session(models.Model):
         available_seats = [seat for seat in range(1, total_seats + 1) if seat not in booked_tickets]
         return available_seats
 
+    def get_seats_by_row(self):
+        seats_per_row = 10
+        row_capacity = self.hall.capacity // seats_per_row
+        available_seats = self.get_available_seats()
+        # List comprehension to create seat data with unique IDs and their availability status
+        return [
+            [
+                (row * seats_per_row + seat_number,
+                 'Free' if (row * seats_per_row + seat_number) in available_seats else 'Booked')
+                for seat_number in range(1, seats_per_row + 1)
+            ]
+            for row in range(row_capacity)
+        ]
+
     def get_absolute_url(self):
         return reverse('session_detail', kwargs={'slug': self.slug})
 
