@@ -23,6 +23,10 @@ class Hall(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name='Жанр')
 
+    @staticmethod
+    def genre_list():
+        return [genre.name for genre in Genre.objects.all()]
+
     def __str__(self):
         return self.name
 
@@ -60,9 +64,15 @@ class Movie(models.Model):
     display_genres.short_description = 'Жанри'
 
     def clean(self):
+        super().clean()
         pattern = r"^[A-Za-z0-9\s:,'\-&!?.]+$"
         if not re.match(pattern, self.original_name):
-            raise ValidationError("Original name must contain only English characters, numbers, and valid punctuation.")
+            raise ValidationError({'original_name': "Original name must contain only English characters."})
+        valid_age_limits = [choice[0] for choice in self.AGE_CHOICES]
+        if self.age_limit not in valid_age_limits:
+            raise ValidationError(f"Age limit {self.age_limit} is not valid.")
+        if self.duration is None or self.duration <= 0:
+            raise ValidationError("The duration must be greater than zero.")
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.original_name)
