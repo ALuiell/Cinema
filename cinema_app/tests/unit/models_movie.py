@@ -2,27 +2,22 @@ from datetime import date
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
-from cinema_app.models import Movie, Genre
-
+from cinema_app.tests.factory_tests import MovieFactory, GenreFactory
+from cinema_app.models import Movie
 
 #REWORK
 class MovieModelTestCase(TestCase):
     def setUp(self):
         """Sets up initial test data for the Movie model."""
-        self.genre1 = Genre.objects.create(name="Action")
-        self.genre2 = Genre.objects.create(name="Drama")
+        self.genre1 = GenreFactory(name="Action")
+        self.genre2 = GenreFactory(name="Drama")
 
         # Create a movie object
-        self.movie = Movie.objects.create(
+        self.movie = MovieFactory(
             title="Test Movie",
             original_name="Test Original",
             description="This is a test description.",
-            duration=120,
-            release_date=date(2023, 1, 1),
-            age_limit=16,
-        )
-        # Assign genres to the movie
-        self.movie.genre.set([self.genre1, self.genre2])
+            genre=[self.genre1, self.genre2])
 
     def test_movie_creation(self):
         """Test that a Movie object is created successfully."""
@@ -31,7 +26,6 @@ class MovieModelTestCase(TestCase):
         self.assertEqual(self.movie.original_name, "Test Original")
         self.assertEqual(self.movie.description, "This is a test description.")
         self.assertEqual(self.movie.duration, 120)
-        self.assertEqual(self.movie.release_date, date(2023, 1, 1))
         self.assertEqual(self.movie.age_limit, 16)
 
     def test_movie_genre_relationship(self):
@@ -73,47 +67,42 @@ class MovieModelTestCase(TestCase):
             self.movie.clean()
 
     def test_clean_negative_duration(self):
-        movie = Movie(
+        #can be IntegrationError
+        movie = MovieFactory.build(
             title="Invalid Movie",
             original_name="Invalid Original Name",
             description="Test Description",
             duration=-1,
-            release_date=date(2022, 1, 1),
-            age_limit=18,
         )
         with self.assertRaises(ValidationError):
             movie.full_clean()
 
     def test_db_constraint_negative_duration(self):
         with self.assertRaises(IntegrityError):
-            Movie.objects.create(
+            MovieFactory(
                 title="Invalid Movie",
                 original_name="Invalid Original Name",
                 description="Test Description",
                 duration=-1,
-                release_date=date(2022, 1, 1),
-                age_limit=18,
             )
 
     def test_movie_release_date_in_future(self):
         """Test that a movie can have a release_date in the future."""
-        future_movie = Movie.objects.create(
+        future_movie = MovieFactory(
             title="Future Movie",
             original_name="Future Original",
             description="Test Future Description",
-            duration=90,
             release_date=date(2025, 1, 1),  # Future date
-            age_limit=12,
+
         )
         self.assertEqual(future_movie.release_date, date(2025, 1, 1))
 
     def test_movie_age_limit_choices(self):
         """Test that only valid age_limit choices can be used."""
-        valid_movie = Movie.objects.create(
+        valid_movie = MovieFactory(
             title="Child Movie",
             original_name="Child Movie Original",
             description="Test Child Description",
-            duration=80,
             release_date=date(2022, 12, 1),
             age_limit=12,  # Valid age limit
         )
@@ -121,11 +110,10 @@ class MovieModelTestCase(TestCase):
 
         # Test invalid age limit
         with self.assertRaises(ValidationError):
-            invalid_movie = Movie(
+            invalid_movie = MovieFactory.build(
                 title="Invalid Age Movie",
                 original_name="Invalid Age Movie Original",
                 description="Test Invalid Age Description",
-                duration=95,
                 release_date=date(2022, 12, 1),
                 age_limit=99,  # Invalid age limit
             )

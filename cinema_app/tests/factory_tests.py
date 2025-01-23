@@ -18,7 +18,7 @@ class HallFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Hall
 
-    name = factory.Faker("name")
+    name = factory.Faker("word")
     capacity = factory.Faker("random_int", min=40, max=100)
 
 
@@ -26,8 +26,7 @@ class GenreFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Genre
 
-    name = factory.Faker("word")
-
+    name = factory.Sequence(lambda n: f"Genre {n}")
 
 
 class MovieFactory(factory.django.DjangoModelFactory):
@@ -41,7 +40,21 @@ class MovieFactory(factory.django.DjangoModelFactory):
         lambda: datetime.now().date() + timedelta(days=random.randint(1, 5 * 365))
     )
     duration = 120
-    age_limit = 12
+    age_limit = 16
+
+    @factory.post_generation
+    def genre(self, create, extracted, **kwargs):
+        if not create:
+            return  # if object no saves, return
+
+        # if genres provided, added
+        if extracted:
+            self.genre.set(extracted)
+        else:
+            # if genres not provided, create and assign two random genres
+            self.genre.set(GenreFactory.create_batch(2))
+
+
 
 
 class SessionFactory(factory.django.DjangoModelFactory):
@@ -67,16 +80,15 @@ class OrderFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
     session = factory.SubFactory(SessionFactory)
     status = Order.PENDING
-    total_price = factory.LazyAttribute(lambda obj: obj.session.base_ticket_price * obj.tickets.count())
+    total_price = factory.LazyAttribute(lambda obj: obj.session.base_ticket_price)
 
 
 class TicketFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Ticket
 
-    session = factory.LazyAttribute(
-        lambda obj: obj.order.session
-    )
+    session = factory.LazyAttribute(lambda obj: obj.order.session if obj.order else None)
+
     price = factory.LazyAttribute(lambda obj: obj.session.base_ticket_price)
     seat_number = factory.LazyAttribute(
         lambda obj: random.choice(obj.session.get_available_seats())

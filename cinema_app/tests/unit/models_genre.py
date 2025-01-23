@@ -1,35 +1,43 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
+
 from cinema_app.models import Genre
+from cinema_app.tests.factory_tests import GenreFactory
 
 
 class GenreModelTestCase(TestCase):
 
     def setUp(self):
-        self.genre = Genre.objects.create(name="Action")
+        self.genre = GenreFactory(name="Action")
 
     def test_genre_str_method(self):
         """Test the string representation of the Genre model."""
-        genre = Genre(name="Adventure")
+        genre = GenreFactory(name="Adventure")
         self.assertEqual(str(genre), "Adventure")
 
     def test_genre_name_unique(self):
-        """Test that the name field must be unique."""
+        """Test that the name field must be unique."""  # Создаём первый жанр
         with self.assertRaises(ValidationError):
-            duplicate_genre = Genre(name="Action")
-            duplicate_genre.full_clean()  # Validate the uniqueness constraint
+            duplicate_genre = GenreFactory.build(name="Action")  # Пытаемся создать жанр с тем же именем
+            duplicate_genre.full_clean()
+
+    def test_genre_name_unique_save(self):
+        """Test that saving a Genre with a duplicate name raises an IntegrityError."""
+        with self.assertRaises(IntegrityError):
+            GenreFactory(name="Action")
 
     def test_genre_name_max_length(self):
         """Test the max length constraint (50 characters) for the name field."""
-        genre = Genre(name="A" * 51)  # Length of 51 characters
+        genre = GenreFactory.build(name="A" * 51)
         with self.assertRaises(ValidationError):
-            genre.full_clean()  # This will raise a ValidationError due to max_length
+            genre.full_clean()
 
     def test_genre_valid_data(self):
         """Test creating a Genre instance with valid data."""
-        genre = Genre(name="Drama")
+        genre = GenreFactory.build(name="Drama")
         try:
-            genre.full_clean()  # Validate the model fields
+            genre.full_clean()
             genre.save()
         except ValidationError:
             self.fail("Genre with valid data raised ValidationError.")

@@ -13,8 +13,8 @@ class Hall(models.Model):
     capacity = models.PositiveIntegerField(verbose_name='Кількість місць')
 
     def clean(self, *args, **kwargs):
-        if self.capacity is None or self.capacity <= 0:
-            raise ValidationError("The capacity must be greater than zero.")
+        if self.capacity is None or self.capacity == 0:
+            raise ValidationError({'capacity': "The capacity must be greater than zero."})
 
     def __str__(self):
         return self.name
@@ -22,6 +22,10 @@ class Hall(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name='Жанр')
+
+    def clean(self, *args, **kwargs):
+        if Genre.objects.filter(name=self.name).exists():
+            raise ValidationError("Genre name must be unique.")
 
     @staticmethod
     def genre_list():
@@ -222,8 +226,23 @@ class Ticket(models.Model):
             models.Index(fields=['session', 'seat_number']),
             models.Index(fields=['user']),
         ]
+        constraints = [
+            models.UniqueConstraint(fields=['session', 'seat_number'], name='unique_seat_per_session')
+        ]
 
     def clean(self):
+        if self.order_id is None:
+            raise ValidationError("Номер замовлення обов'язковий для створення квитка.")
+        if self.user_id is None:
+            raise ValidationError("Користувач обов'язковий для створення квитка.")
+        if self.user_id is not self.order.user.id:
+            raise ValidationError("Користувач квитка не відповідає користувачу замовлення.")
+        if self.price == None or self.price <= 0:
+            raise ValidationError('Некоректна ціна квитка')
+        if self.status not in [elem[0] for elem in self.ORDER_STATUS_CHOICES]:
+            raise ValidationError('Некоректний статус квитка')
+        if self.seat_number not in self.session.get_available_seats():
+            raise ValidationError(f'Квиток з таким номером місця вже існує')
         hall_capacity = self.session.hall.capacity
         if self.seat_number is None or hall_capacity is None or not (1 <= self.seat_number <= hall_capacity):
             raise ValidationError(
@@ -235,5 +254,4 @@ class Ticket(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return (f'{self.user.first_name} {self.user.last_name} | '
-                f' {self.session.movie} | {self.session}')
+        return f'{self.user.first_name} {self.user.last_name} | {self.session.movie} | {self.session}'
