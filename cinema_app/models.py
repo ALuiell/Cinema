@@ -72,9 +72,11 @@ class Movie(models.Model):
         pattern = r"^[A-Za-z0-9\s:,'\-&!?.]+$"
         if not re.match(pattern, self.original_name):
             raise ValidationError({'original_name': "Original name must contain only English characters."})
+
         valid_age_limits = [choice[0] for choice in self.AGE_CHOICES]
         if self.age_limit not in valid_age_limits:
             raise ValidationError(f"Age limit {self.age_limit} is not valid.")
+
         if self.duration is None or self.duration <= 0:
             raise ValidationError("The duration must be greater than zero.")
 
@@ -192,17 +194,18 @@ class Order(models.Model):
         return f"Order {self.id} for {self.user.username}"
 
     def clean(self):
+
         if self.user_id is None:
-            raise ValidationError("User is required to create an order.")
+            raise ValidationError("Користувач є обов'язковим для створення замовлення.")
 
         if self.session_id is None:
-            raise ValidationError("Session must be specified for the order.")
+            raise ValidationError("Сеанс повинен бути вказаний для замовлення.")
 
         if self.status not in dict(self.ORDER_STATUS_CHOICES):
-            raise ValidationError("Invalid status for the order.")
+            raise ValidationError("Недійсний статус для замовлення.")
 
         if self.total_price < 0:
-            raise ValidationError("Total price cannot be negative.")
+            raise ValidationError("Загальна ціна не може бути від'ємною.")
 
 
 class Ticket(models.Model):
@@ -236,16 +239,22 @@ class Ticket(models.Model):
     def clean(self):
         if self.order_id is None:
             raise ValidationError("Номер замовлення обов'язковий для створення квитка.")
+
         if self.user_id is None:
             raise ValidationError("Користувач обов'язковий для створення квитка.")
+
         if self.user_id is not self.order.user.id:
             raise ValidationError("Користувач квитка не відповідає користувачу замовлення.")
+
         if self.price == None or self.price <= 0:
             raise ValidationError('Некоректна ціна квитка')
+
         if self.status not in [elem[0] for elem in self.ORDER_STATUS_CHOICES]:
             raise ValidationError('Некоректний статус квитка')
+
         if self.seat_number not in self.session.get_available_seats():
             raise ValidationError(f'Квиток з таким номером місця вже існує')
+
         hall_capacity = self.session.hall.capacity
         if self.seat_number is None or hall_capacity is None or not (1 <= self.seat_number <= hall_capacity):
             raise ValidationError(
