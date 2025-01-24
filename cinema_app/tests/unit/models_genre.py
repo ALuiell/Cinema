@@ -17,9 +17,9 @@ class GenreModelTestCase(TestCase):
         self.assertEqual(str(genre), "Adventure")
 
     def test_genre_name_unique(self):
-        """Test that the name field must be unique."""  # Создаём первый жанр
+        """Test that the name field must be unique."""
         with self.assertRaises(ValidationError):
-            duplicate_genre = GenreFactory.build(name="Action")  # Пытаемся создать жанр с тем же именем
+            duplicate_genre = GenreFactory.build(name="Action")
             duplicate_genre.full_clean()
 
     def test_genre_name_unique_save(self):

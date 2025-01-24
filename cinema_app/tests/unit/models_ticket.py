@@ -1,5 +1,4 @@
 import time
-
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from cinema_app.tests.factory_tests import TicketFactory, UserFactory, GenreFactory, MovieFactory, SessionFactory

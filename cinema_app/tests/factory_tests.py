@@ -80,7 +80,7 @@ class OrderFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
     session = factory.SubFactory(SessionFactory)
     status = Order.PENDING
-    total_price = factory.LazyAttribute(lambda obj: obj.session.base_ticket_price)
+    total_price = factory.LazyAttribute(lambda obj: obj.session.base_ticket_price if obj.session else 0)
 
 
 class TicketFactory(factory.django.DjangoModelFactory):

@@ -191,7 +191,7 @@ def check_order_status(request, order_id):
 
 def purchase_pending(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    seat_numbers = order.get_seat_numbers()
+    seat_numbers = order.get_str_seat_numbers()
     context = {
         'order': order,
         'seat_numbers': seat_numbers,
@@ -206,7 +206,7 @@ def purchase_success(request, order_id):
         messages.error(request, "You are not allowed to view this order.")
         return redirect('home')
 
-    seat_numbers = order.get_seat_numbers()
+    seat_numbers = order.get_str_seat_numbers()
 
     context = {
         'seat_numbers': seat_numbers,
@@ -224,7 +224,7 @@ def purchase_cancel(request, order_id):
         messages.error(request, "You are not allowed to view this order.")
         return redirect('home')
 
-    seat_numbers = order.get_seat_numbers()
+    seat_numbers = order.get_str_seat_numbers()
 
     context = {
         'seat_numbers': seat_numbers,

@@ -88,16 +88,15 @@ class SessionModelTestCase(TestCase):
 
     def test_unique_constraint(self):
         """Test unique constraint for hall, session_date, and start_time."""
-        # added validator to models
         session = SessionFactory(
             session_date = date.today() + timedelta(days=1),
             start_time=time(14, 0)
         )
-        with self.assertRaises(ValidationError):  # Restricted by unique constraint
+        with self.assertRaises(IntegrityError):  # Restricted by unique constraint
             SessionFactory(
                 hall=session.hall,
-                session_date=date.today(),
-                start_time=time(14, 0)  # Duplicate session in same hall at same time
+                session_date=session.session_date,
+                start_time=session.start_time  # Duplicate session in same hall at same time
             )
 
     def test_absolute_url(self):

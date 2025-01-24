@@ -5,7 +5,6 @@ from cinema_app.tests.factory_tests import HallFactory
 
 class HallModelTestCase(TestCase):
     def setUp(self):
-        # Create a valid Hall instance for general use in other tests
         self.valid_hall = HallFactory(name="Main Hall", capacity=100)
 
     def test_hall_str_method(self):
@@ -15,23 +14,22 @@ class HallModelTestCase(TestCase):
 
     def test_hall_capacity_zero_validation(self):
         """Test that a ValidationError is raised if the capacity is zero."""
-        # Use HallFactory with build strategy to create an unsaved instance
         hall = HallFactory.build(name="Small Hall", capacity=0)
         with self.assertRaises(ValidationError):
-            hall.full_clean()  # Trigger validation manually
+            hall.full_clean()
 
     def test_hall_capacity_negative_validation(self):
         """Test that a ValidationError is raised if the capacity is negative."""
         hall = HallFactory.build(name="Negative Hall", capacity=-5)
         with self.assertRaises(ValidationError):
-            hall.full_clean()  # Trigger validation manually
+            hall.full_clean()
 
     def test_hall_capacity_valid(self):
         """Test that a Hall with valid capacity passes validation and can be saved."""
         hall = HallFactory.build(name="Valid Hall", capacity=50)
         try:
-            hall.full_clean()  # Validate the model fields
-            hall.save()  # Save only if validation passes
+            hall.full_clean()
+            hall.save()
         except ValidationError:
             self.fail("Hall with valid capacity raised a ValidationError.")
 

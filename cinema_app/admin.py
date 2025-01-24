@@ -35,7 +35,7 @@ class OrderAdmin(admin.ModelAdmin):
     readonly_fields = ('total_price', 'created_at', 'updated_at')
 
     def display_seat_numbers(self, obj):
-        return obj.get_seat_numbers()
+        return obj.get_str_seat_numbers()
     display_seat_numbers.short_description = 'Місця'
 
 

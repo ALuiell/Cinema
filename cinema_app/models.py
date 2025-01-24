@@ -182,17 +182,20 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def get_seat_numbers(self):
+    def get_str_seat_numbers(self):
         return ', '.join(str(ticket.seat_number) for ticket in self.tickets.all())
+
+    def get_list_seat_numbers(self):
+        return [ticket.seat_number for ticket in self.tickets.all()]
 
     def __str__(self):
         return f"Order {self.id} for {self.user.username}"
 
     def clean(self):
-        if not self.user:
-            raise ValidationError("User must be specified for the order.")
+        if self.user_id is None:
+            raise ValidationError("User is required to create an order.")
 
-        if not self.session:
+        if self.session_id is None:
             raise ValidationError("Session must be specified for the order.")
 
         if self.status not in dict(self.ORDER_STATUS_CHOICES):

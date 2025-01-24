@@ -43,7 +43,6 @@ class MovieModelTestCase(TestCase):
         """Ensure the movie creates a slug based on the original_name."""
         self.assertEqual(self.movie.slug, "test-original")
 
-        # Update the original_name and save again to test slug updates
         self.movie.original_name = "Updated Movie Name"
         self.movie.save()
         self.assertEqual(self.movie.slug, "updated-movie-name")
@@ -62,7 +61,7 @@ class MovieModelTestCase(TestCase):
 
     def test_movie_clean_invalid_original_name(self):
         """Test the clean method raises ValidationError for invalid original_name."""
-        self.movie.original_name = "Інвалід Нейм"  # Invalid characters (non-English)
+        self.movie.original_name = "Інвалід Нейм"
         with self.assertRaises(ValidationError):
             self.movie.clean()
 
@@ -104,11 +103,10 @@ class MovieModelTestCase(TestCase):
             original_name="Child Movie Original",
             description="Test Child Description",
             release_date=date(2022, 12, 1),
-            age_limit=12,  # Valid age limit
+            age_limit=12,
         )
         self.assertEqual(valid_movie.age_limit, 12)
 
-        # Test invalid age limit
         with self.assertRaises(ValidationError):
             invalid_movie = MovieFactory.build(
                 title="Invalid Age Movie",
@@ -127,6 +125,5 @@ class MovieModelTestCase(TestCase):
 
     def test_movie_indexing(self):
         """Test that the movie's database indexes work correctly."""
-        # Ensure Movie is indexed by release_date
         indexed_field = Movie._meta.indexes[0].fields
         self.assertIn("release_date", indexed_field, "release_date should be indexed.")
