@@ -80,7 +80,7 @@ class OrderFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
     session = factory.SubFactory(SessionFactory)
     status = Order.PENDING
-    total_price = factory.LazyAttribute(lambda obj: obj.session.base_ticket_price if obj.session else 0)
+    # total_price = factory.LazyAttribute(lambda obj: obj.session.base_ticket_price if obj.session else 0)
 
 
 class TicketFactory(factory.django.DjangoModelFactory):
@@ -88,12 +88,11 @@ class TicketFactory(factory.django.DjangoModelFactory):
         model = Ticket
 
     session = factory.LazyAttribute(lambda obj: obj.order.session if obj.order else None)
-
+    order = factory.SubFactory(OrderFactory)
     price = factory.LazyAttribute(lambda obj: obj.session.base_ticket_price)
     seat_number = factory.LazyAttribute(
         lambda obj: random.choice(obj.session.get_available_seats())
     )
-    order = factory.SubFactory(OrderFactory)
     status = Ticket.RESERVED
     user = factory.LazyAttribute(
         lambda obj: obj.order.user

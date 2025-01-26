@@ -160,6 +160,7 @@ class OrderModelTestCase(TestCase):
     def test_order_total_price_calculation(self):
         """Test that the total price of an Order is calculated based on associated tickets."""
         order = OrderFactory()
+        self.assertEqual(order.total_price, 0)
 
         expected_sum = 0
         ticket_count = random.randint(2, 6)
@@ -168,7 +169,6 @@ class OrderModelTestCase(TestCase):
             ticket = TicketFactory(order=order, session=order.session, user=order.user)
             expected_sum += ticket.price
 
-        order.total_price = sum(ticket.price for ticket in order.tickets.all())
-        order.save()
+        order.refresh_from_db()
 
         self.assertEqual(order.total_price, expected_sum)

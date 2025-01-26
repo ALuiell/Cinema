@@ -65,12 +65,10 @@ def purchase_ticket_process(request, session):
 
     try:
         selected_seats = json.loads(selected_seats)
-        price = session.base_ticket_price
-        total_price = price * len(selected_seats)
         free_seats = session.get_available_seats()
 
         with transaction.atomic():
-            order = Order.objects.create(user=request.user, session=session, total_price=total_price,
+            order = Order.objects.create(user=request.user, session=session,
                                          status=Order.PENDING)
 
             for seat in selected_seats:
@@ -79,7 +77,7 @@ def purchase_ticket_process(request, session):
                     return False, {'error_message': f"Місце {seat} вже зайняте"}
 
                 ticket = Ticket.objects.create(
-                    session=session, user=request.user, seat_number=seat, status=Ticket.RESERVED, price=price,
+                    session=session, user=request.user, seat_number=seat, status=Ticket.RESERVED, price=session.base_ticket_price,
                     order=order
                 )
 
