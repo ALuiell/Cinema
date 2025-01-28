@@ -26,7 +26,7 @@ class MovieListView(ListView):
     model = Movie
     template_name = 'cinema_app/movie_list.html'
     context_object_name = 'movie_list'
-    paginate_by = 3
+    paginate_by = 6
 
     def get_queryset(self):
         queryset = super().get_queryset()
