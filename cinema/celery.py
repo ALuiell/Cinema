@@ -2,15 +2,15 @@
 # import os
 # from celery import Celery
 
-# # Указываем настройки Django для Celery
+
 # os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cinema.settings')
 
 # app = Celery('cinema')
 
-# # Настройки Celery берутся из Django settings
+
 # app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# # Автоматическое обнаружение задач
+
 # app.autodiscover_tasks()
 
 
