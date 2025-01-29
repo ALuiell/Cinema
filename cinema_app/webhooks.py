@@ -19,12 +19,12 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def stripe_webhook(request):
-    payload = request.body.decode('utf-8')  # Раскодируем тело запроса
+    payload = request.body.decode('utf-8')
     sig_header = request.headers.get("Stripe-Signature")
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
     try:
-        # Проверка подписи Stripe
+        # Stripe signature verification
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
         logger.info(f"Received event: {event['type']}")
     except ValueError as e:
@@ -34,23 +34,23 @@ def stripe_webhook(request):
         logger.error(f"Invalid signature: {str(e)}")
         return JsonResponse({'error': 'Invalid signature'}, status=400)
 
-    # Обработка события `checkout.session.completed`
+    # Event Handling `checkout.session.completed`
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         logger.info(f"Session data: {session}")
 
-        # Получение ID заказа
+        # Getting order ID
         order_id = session.get('client_reference_id')
         if not order_id:
             logger.error("Missing 'client_reference_id'")
             return JsonResponse({'error': "Missing 'client_reference_id'"}, status=400)
 
         try:
-            # Ищем заказ в базе данных
+            # Looking for an order in the database
             order = Order.objects.get(id=order_id)
             logger.info(f"Found order {order.id}")
 
-            # Проверяем статус оплаты
+            # Checking the payment status
             if session.get('payment_status') == 'paid':
                 if order.status == Order.PENDING:
                     order.status = Order.COMPLETED
@@ -68,7 +68,7 @@ def stripe_webhook(request):
             return JsonResponse({'error': 'Order not found'}, status=404)
 
     else:
-        # Обработка других типов событий
+        # Handling other types of events
         logger.warning(f"Unhandled event type: {event['type']}")
 
     return JsonResponse({'status': 'success'}, status=200)

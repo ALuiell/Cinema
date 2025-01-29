@@ -87,10 +87,10 @@ class SessionListView(ListView):
     def get_queryset(self):
         sessions = Session.objects.filter(session_date__gte=date.today()).order_by('session_date', 'start_time')
 
-        # Проверяем наличие slug фильма в параметрах URL
+        # Check if there is a movie slug in the URL parameters
         movie_slug = self.kwargs.get('slug')
         if movie_slug:
-            # Фильтруем сессии только по slug фильма
+            # Filter sessions by movie slug only
             sessions = sessions.filter(movie__slug=movie_slug)
 
         selected_date = self.request.GET.get('date', None)
@@ -104,17 +104,17 @@ class SessionListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Устанавливаем локаль на украинский
+        #
         locale.setlocale(locale.LC_TIME, 'uk_UA.UTF-8')
 
         today = date.today()
         selected_date = self.request.GET.get('date', None)
 
-        # Если selected_date не передан, то используем today's date как default
+        # If selected_date is not passed, then we use today's date as default
         if selected_date:
             selected_date = parse_date(selected_date)
 
-        # Добавляем информацию о фильме в контекст, если передан `slug`
+        # Add movie information to the context if `slug` is passed in
         movie_slug = self.kwargs.get('slug')
         if movie_slug:
             movie = Movie.objects.get(slug=movie_slug)
@@ -155,7 +155,6 @@ def purchase_ticket(request, session_slug):
     seats_by_row = session.get_seats_by_row()
 
     if request.method == 'POST':
-        # success, result, order_id = purchase_ticket_process(request, session)
         success, data = purchase_ticket_process(request, session)
         if not success:
             messages.error(request, data["error_message"])

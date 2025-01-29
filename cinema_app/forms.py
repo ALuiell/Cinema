@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 class CustomPasswordChangeForm(PasswordChangeForm):
     old_password = forms.CharField(
         label='Старий пароль',
-        widget=forms.PasswordInput(attrs={'placeholder': 'Введіть старий пароль'})  # Добавление атрибутов
+        widget=forms.PasswordInput(attrs={'placeholder': 'Введіть старий пароль'})
     )
     new_password1 = forms.CharField(
         label='Новий пароль',
