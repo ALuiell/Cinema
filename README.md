@@ -27,7 +27,7 @@ This project is a web-based cinema ticket booking system built with Django. The 
   - **Local development**: Uses SQLite by default.
   - **Docker environment**: Uses PostgreSQL.
   - **Production**: Uses MySQL.
-- **Redis** - Used for caching and background task management.
+- **Redis** - Used for background task management.
 - **Django Background Tasks** - Used for handling asynchronous background tasks.
 - **Celery (prepared settings)** - Configured but not actively used in deployment.
 - **Stripe API** - Payment processing.
