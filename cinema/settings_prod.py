@@ -11,7 +11,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+
+from celery.schedules import crontab
 from decouple import config
+
 from cinema_app.pipeline import check_email_exists
 # from celery.schedules import crontab
 
@@ -22,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#ikgj4ezmp&dykdo((3i7(x$tpuxovvc&%xi$$7$wf(df$d8!%'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -44,9 +47,9 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'django_extensions',
-    # 'django_celery_beat',
+    'django_celery_beat',
     'cinema_app',
-    'background_task'
+    # 'background_task'
 ]
 
 MIDDLEWARE = [
@@ -87,17 +90,15 @@ WSGI_APPLICATION = 'cinema.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT', default='3306'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
+
 
 
 # Password validation
@@ -201,16 +202,16 @@ INTERNAL_IPS = [
     '172.17.0.1',
 ]
 
-# CELERY_BROKER_URL = config('REDIS_URL')
-# CELERY_RESULT_BACKEND = config('REDIS_URL')
-# CELERY_ACCEPT_CONTENT = ['json']
-# CELERY_TASK_SERIALIZER = 'json'
-# CELERY_TIMEZONE = TIME_ZONE
+CELERY_BROKER_URL = config('REDIS_URL')
+CELERY_RESULT_BACKEND = config('REDIS_URL')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
 
 
-# CELERY_BEAT_SCHEDULE = {
-#     'run-periodic-task': {
-#         'task': 'cinema_app.tasks.cancel_unpaid_orders',
-#         'schedule': crontab(minute='*/60'),
-#     },
-# }
+CELERY_BEAT_SCHEDULE = {
+    'run-periodic-task': {
+        'task': 'cinema_app.tasks.cancel_unpaid_orders',
+        'schedule': crontab(minute='*'),
+    },
+}

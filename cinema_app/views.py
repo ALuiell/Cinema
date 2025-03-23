@@ -1,5 +1,3 @@
-import locale
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -10,8 +8,7 @@ from django.views.generic import ListView, TemplateView, DetailView
 
 from cinema import settings
 from .models import *
-from django.db.models import Q
-from .services import purchase_ticket_process, process_payment
+from cinema_app import services
 
 
 def redirect_to_home(request):
@@ -36,27 +33,9 @@ class MovieListView(ListView):
         age_limit = self.request.GET.get('age_limit')
         search_query = self.request.GET.get('search', '').strip()
 
-        # Validate and filter the genres by ensuring they are numeric IDs
-        if selected_genres:
-            valid_genres = [genre for genre in selected_genres if genre.isdigit()]
-            if valid_genres:
-                queryset = queryset.filter(genre__id__in=valid_genres).distinct()
+        queryset = services.get_movies_list(queryset, selected_genres, age_limit, search_query)
 
-        # Validate and filter the age limit by ensuring it's a valid integer
-        if age_limit and age_limit.isdigit():
-            queryset = queryset.filter(age_limit=int(age_limit))
-
-        # Validate and filter the search query by cleaning and formatting the input
-        if search_query:
-            search_query = search_query.capitalize()
-            query = (
-                    Q(title__icontains=search_query) |
-                    Q(description__icontains=search_query) |
-                    Q(original_name__icontains=search_query)
-            )
-            queryset = queryset.filter(query)
-
-        return queryset
+        return queryset.order_by('id')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -85,27 +64,19 @@ class SessionListView(ListView):
     context_object_name = 'session_list'
 
     def get_queryset(self):
-        sessions = Session.objects.filter(session_date__gte=date.today()).order_by('session_date', 'start_time')
+        queryset = Session.objects.filter(session_date__gte=date.today()).order_by('session_date', 'start_time')
 
         # Check if there is a movie slug in the URL parameters
         movie_slug = self.kwargs.get('slug')
-        if movie_slug:
-            # Filter sessions by movie slug only
-            sessions = sessions.filter(movie__slug=movie_slug)
+        selected_date = parse_date(self.request.GET.get('date', None))
 
-        selected_date = self.request.GET.get('date', None)
-        if selected_date:
-            selected_date = parse_date(selected_date)
-            if selected_date:
-                sessions = sessions.filter(session_date=selected_date)
+        queryset = services.get_sessions_list(queryset, movie_slug, selected_date)
+        return queryset
 
-        return sessions
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        #
-        locale.setlocale(locale.LC_TIME, 'uk_UA.UTF-8')
+        services.set_ukrainian_locale()
 
         today = date.today()
         selected_date = self.request.GET.get('date', None)
@@ -155,7 +126,7 @@ def purchase_ticket(request, session_slug):
     seats_by_row = session.get_seats_by_row()
 
     if request.method == 'POST':
-        success, data = purchase_ticket_process(request, session)
+        success, data = services.purchase_ticket_process(request, session)
         if not success:
             messages.error(request, data["error_message"])
         else:
@@ -172,7 +143,7 @@ def purchase_ticket(request, session_slug):
 @login_required
 def retry_payment(request, pk):
     order = get_object_or_404(Order, id=pk)
-    redirect_url = process_payment(request, order)
+    redirect_url = services.process_payment(request, order)
     if redirect_url:
         return redirect(redirect_url)
     else:

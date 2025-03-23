@@ -23,9 +23,9 @@ class Hall(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name='Жанр')
 
-    def clean(self, *args, **kwargs):
-        if Genre.objects.filter(name=self.name).exists():
-            raise ValidationError("Genre name must be unique.")
+    # def clean(self, *args, **kwargs):
+    #     if Genre.objects.filter(name=self.name).exists():
+    #         raise ValidationError("Genre name must be unique.")
 
     @staticmethod
     def genre_list():
@@ -52,7 +52,7 @@ class Movie(models.Model):
     release_date = models.DateField(verbose_name='Дата випуску')
     age_limit = models.PositiveIntegerField(choices=AGE_CHOICES, verbose_name='Вікове обмеження')
     poster = models.ImageField(upload_to=poster_upload_to, blank=True, null=True)
-    slug = models.SlugField(max_length=100, unique=True, blank=True)
+    slug = models.SlugField(max_length=100, unique=True, blank=True, default='')
 
     class Meta:
         indexes = [
@@ -95,10 +95,12 @@ class Session(models.Model):
     session_date = models.DateField(verbose_name='Дата сеансу')
     start_time = models.TimeField(verbose_name='Початок сеансу')
     end_time = models.TimeField(verbose_name='Кінець сеансу', blank=True, null=True, editable=False)
-    slug = models.SlugField(max_length=255, unique=True, editable=False, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, editable=False, blank=True, default='')
 
     class Meta:
-        unique_together = ('hall', 'session_date', 'start_time')
+        constraints = [
+            models.UniqueConstraint(fields=['hall', 'session_date', 'start_time'], name='unique_session_time')
+        ]
         indexes = [
             models.Index(fields=['session_date', 'start_time']),
             models.Index(fields=['hall']),
@@ -114,19 +116,6 @@ class Session(models.Model):
         available_seats = [seat for seat in range(1, total_seats + 1) if seat not in booked_tickets]
         return available_seats
 
-    # def get_seats_by_row(self):
-    #     seats_per_row = 10
-    #     row_capacity = self.hall.capacity // seats_per_row
-    #     available_seats = self.get_available_seats()
-    #     # List comprehension to create seat data with unique IDs and their availability status
-    #     return [
-    #         [
-    #             (row * seats_per_row + seat_number,
-    #              'Free' if (row * seats_per_row + seat_number) in available_seats else 'Booked')
-    #             for seat_number in range(1, seats_per_row + 1)
-    #         ]
-    #         for row in range(row_capacity)
-    #     ]
 
     def get_seats_by_row(self):
         seats_per_row = 10
@@ -143,8 +132,6 @@ class Session(models.Model):
             rows.append(current_row)
 
         return rows
-
-
 
     def get_absolute_url(self):
         return reverse('session_detail', kwargs={'slug': self.slug})

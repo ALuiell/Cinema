@@ -1,10 +1,11 @@
 import json
-
+import locale
 import stripe
 from django.conf import settings
 from django.db import transaction
 import logging
 from .models import *
+from django.db.models import Q
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 stripe.api_version = settings.STRIPE_API_VERSION
@@ -12,6 +13,78 @@ stripe.api_version = settings.STRIPE_API_VERSION
 
 logger = logging.getLogger(__name__)
 
+
+def get_movies_list(queryset, genre_ids, age_limit, search_query):
+    # Validate and filter the genres by ensuring they are numeric IDs
+    if genre_ids:
+        valid_genres = [genre for genre in genre_ids if genre.isdigit()]
+        if valid_genres:
+            queryset = queryset.filter(genre__id__in=valid_genres).distinct()
+
+    # Validate and filter the age limit by ensuring it's a valid integer
+    if age_limit and age_limit.isdigit():
+        queryset = queryset.filter(age_limit=int(age_limit))
+
+    # Validate and filter the search query by cleaning and formatting the input
+    if search_query:
+        search_query = search_query.capitalize()
+        query = (
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(original_name__icontains=search_query)
+        )
+        queryset = queryset.filter(query)
+
+    return queryset
+
+def get_sessions_list(queryset, movie_slug, session_date):
+    if movie_slug:
+        # Filter sessions by movie slug only
+        queryset = queryset.filter(movie__slug=movie_slug)
+
+    if session_date:
+        queryset = queryset.filter(session_date=session_date)
+
+    return queryset
+
+
+def set_ukrainian_locale():
+    """Set local on Ukrainian or fallback on `C`"""
+    try:
+        locale.setlocale(locale.LC_TIME, 'uk_UA.UTF-8')
+    except locale.Error:
+        locale.setlocale(locale.LC_TIME, 'C')
+
+
+def get_movie_by_slug(movie_slug):
+    """Retrieve movie on `slug`, if exists"""
+    return Movie.objects.filter(slug=movie_slug).first()
+
+
+def create_stripe_session(success_url, cancel_url, order):
+    session_data = {
+        'mode': 'payment',
+        'client_reference_id': order.id,
+        'success_url': success_url,
+        'cancel_url': cancel_url,
+        'line_items': [],
+    }
+
+    for ticket in Ticket.objects.filter(order_id=order.id):
+        session_data['line_items'].append({
+            'price_data': {
+                'currency': 'UAH',
+                'product_data': {
+                    'name': f'Квиток на "{ticket.session.movie.title}"',
+                    'description': f'Сеанс: {ticket.session.start_time} {ticket.session.session_date}, '
+                                   f'Місце: {ticket.seat_number}',
+                },
+                'unit_amount': int(ticket.session.base_ticket_price * 100),
+            },
+            'quantity': 1,
+        })
+    session = stripe.checkout.Session.create(**session_data)
+    return session.url
 
 def process_payment(request, order):
     try:
@@ -26,37 +99,38 @@ def process_payment(request, order):
             'order_id': order.id
         }))
 
-        session_data = {
-            'mode': 'payment',
-            'client_reference_id': order.id,
-            'success_url': success_url,
-            'cancel_url': cancel_url,
-            'line_items': [],
-        }
-
-        for ticket in Ticket.objects.filter(order_id=order.id):
-            session_data['line_items'].append({
-                'price_data': {
-                    'currency': 'UAH',
-                    'product_data': {
-                        'name': f'Квиток на "{ticket.session.movie.title}"',
-                        'description': f'Сеанс: {ticket.session.start_time} {ticket.session.session_date}, '
-                                       f'Місце: {ticket.seat_number}',
-                    },
-                    'unit_amount': int(ticket.session.base_ticket_price * 100),
-                },
-                'quantity': 1,
-            })
-
-        session = stripe.checkout.Session.create(**session_data)
+        session_url = create_stripe_session(success_url, cancel_url, order)
 
         # return redirect_url in purchase_ticket_process
-        return session.url
+        return session_url
 
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error: {str(e)}")
         return None
 
+
+def create_order_process(request, session, selected_seats, free_seats):
+    with transaction.atomic():
+        order = Order.objects.create(user=request.user, session=session,
+                                     status=Order.PENDING)
+
+        for seat in selected_seats:
+            seat = int(seat)
+            if seat not in free_seats:
+                raise Exception(f"Місце {seat} вже зайняте")
+
+            ticket = Ticket.objects.create(
+                session=session, user=request.user, seat_number=seat, status=Ticket.RESERVED,
+                price=session.base_ticket_price,
+                order=order
+            )
+
+        redirect_url = process_payment(request, order)
+        if not redirect_url:
+            return False, {'error_message': f"Оплата не прошла. Спробуйте ще раз"}
+
+        # return redirect_url in main function purchase_ticket
+        return True, {'redirect_url': redirect_url}
 
 def purchase_ticket_process(request, session):
     selected_seats = request.POST.get('selected_seats')
@@ -67,27 +141,7 @@ def purchase_ticket_process(request, session):
         selected_seats = json.loads(selected_seats)
         free_seats = session.get_available_seats()
 
-        with transaction.atomic():
-            order = Order.objects.create(user=request.user, session=session,
-                                         status=Order.PENDING)
-
-            for seat in selected_seats:
-                seat = int(seat)
-                if seat not in free_seats:
-                    return False, {'error_message': f"Місце {seat} вже зайняте"}
-
-                ticket = Ticket.objects.create(
-                    session=session, user=request.user, seat_number=seat, status=Ticket.RESERVED, price=session.base_ticket_price,
-                    order=order
-                )
-
-            redirect_url = process_payment(request, order)
-
-            if not redirect_url:
-                return False, {'error_message': f"Оплата не прошла. Спробуйте ще раз"}
-
-            # return redirect_url in main function purchase_ticket
-            return True, {'redirect_url': redirect_url}
+        return create_order_process(request, session, selected_seats, free_seats)
 
     except ValueError:
         return False, "Неправильний номер місця"

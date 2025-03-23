@@ -1,20 +1,23 @@
 import logging
 from datetime import timedelta
 from django.utils.timezone import now
+from celery import shared_task
 from cinema_app.models import Order, Ticket
-from background_task import background
 
 # Настройка логирования
 logging.basicConfig(
-    filename='background_tasks.log',  # Имя файла для логов
-    level=logging.INFO,               # Уровень логирования
-    format='%(asctime)s - %(levelname)s - %(message)s',  # Формат сообщения
+    filename='celery_tasks.log',  # Имя файла для логов
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
 )
 
 logger = logging.getLogger(__name__)
 
-@background(schedule=timedelta(hours=1))
+@shared_task(name='cinema_app.tasks.cancel_unpaid_orders')
 def cancel_unpaid_orders():
+    """
+    Отменяет неоплаченные заказы через 1 минуту после создания.
+    """
     try:
         expiration_time = timedelta(minutes=1)
         current_time = now()

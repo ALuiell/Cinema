@@ -5,16 +5,18 @@ services:
     build:
       context: .
     command: >
-      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "./wait-for-it.sh db && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
-      - DJANGO_SETTINGS_MODULE=cinema.settings
+      - DJANGO_SETTINGS_MODULE=cinema.settings_prod
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - POSTGRES_USER=myuser
@@ -31,7 +33,7 @@ services:
       - redis
       - db
     environment:
-      - DJANGO_SETTINGS_MODULE=cinema.settings
+      - DJANGO_SETTINGS_MODULE=cinema.settings_prod
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
@@ -40,10 +42,12 @@ services:
       context: .
     command: celery -A cinema beat --loglevel=info
     depends_on:
-      - redis
-      - db
+      celery:
+        condition: service_started
+      redis:
+        condition: service_started
     environment:
-      - DJANGO_SETTINGS_MODULE=cinema.settings
+      - DJANGO_SETTINGS_MODULE=cinema.settings_prod
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
@@ -55,13 +59,21 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=mydatabase
+      - DB_NAME=mydatabase  # 🔥 Добавляем!
+      - DB_HOST=db
+      - DB_PORT=5432
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "myuser", "-d", "mydatabase" ]
+      interval: 5s
+      retries: 5
 
 volumes:
   postgres_data:
+    driver: local
