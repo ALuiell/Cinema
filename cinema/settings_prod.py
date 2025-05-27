@@ -215,4 +215,4 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-AUTH_USER_MODEL = 'your_app_name.CustomUser'
+AUTH_USER_MODEL = 'cinema_app.CustomUser'
