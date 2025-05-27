@@ -119,7 +119,7 @@ def create_order_process(request, session, selected_seats, free_seats):
             if seat not in free_seats:
                 raise Exception(f"Місце {seat} вже зайняте")
 
-            ticket = Ticket.objects.create(
+            Ticket.objects.create(
                 session=session, user=request.user, seat_number=seat, status=Ticket.RESERVED,
                 price=session.base_ticket_price,
                 order=order

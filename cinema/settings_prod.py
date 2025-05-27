@@ -16,7 +16,6 @@ from celery.schedules import crontab
 from decouple import config
 
 from cinema_app.pipeline import check_email_exists
-# from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,7 +30,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['mysite.com', 'localhost', 'aluiel3.pythonanywhere.com', '127.0.0.1']
+ALLOWED_HOSTS = ['mysite.com', 'localhost', 'aluiel3.pythonanywhere.com', '127.0.0.1', '176.36.47.164']
 
 # Application definition
 
@@ -215,3 +214,5 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*'),
     },
 }
+
+AUTH_USER_MODEL = 'your_app_name.CustomUser'

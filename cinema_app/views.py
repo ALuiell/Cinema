@@ -64,14 +64,25 @@ class SessionListView(ListView):
     context_object_name = 'session_list'
 
     def get_queryset(self):
-        queryset = Session.objects.filter(session_date__gte=date.today()).order_by('session_date', 'start_time')
+        queryset = Session.objects.filter(
+            session_date__gte=date.today()
+        ).order_by('session_date', 'start_time')
 
-        # Check if there is a movie slug in the URL parameters
         movie_slug = self.kwargs.get('slug')
-        selected_date = parse_date(self.request.GET.get('date', None))
 
-        queryset = services.get_sessions_list(queryset, movie_slug, selected_date)
-        return queryset
+        date_str = self.request.GET.get('date')
+        if date_str:
+            selected_date = parse_date(date_str)
+            if not selected_date:
+                selected_date = date.today()
+        else:
+            selected_date = date.today()
+
+        return services.get_sessions_list(
+            queryset,
+            movie_slug,
+            selected_date
+        )
 
 
     def get_context_data(self, **kwargs):

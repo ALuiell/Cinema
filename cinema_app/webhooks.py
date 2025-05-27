@@ -9,7 +9,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 logging.basicConfig(
-    filename='webhooks.py',
+    filename='webhooks.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
 )

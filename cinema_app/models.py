@@ -1,11 +1,28 @@
 from datetime import time, timedelta, datetime, date
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 from .utils import poster_upload_to, generate_session_slug
 import re
+
+
+class CustomUser(AbstractUser):
+    telegram_id = models.BigIntegerField(unique=True,
+                                         null=True,
+                                         blank=True,
+                                         help_text="Telegram user ID"
+                                         )
+    verification_code = models.CharField(unique=True,
+                                         null=True,
+                                         blank=True,
+                                         max_length=6,
+                                         help_text="Verification telegram code")
+
+
+    def __str__(self):
+        return self.username
 
 
 class Hall(models.Model):
@@ -22,10 +39,6 @@ class Hall(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name='Жанр')
-
-    # def clean(self, *args, **kwargs):
-    #     if Genre.objects.filter(name=self.name).exists():
-    #         raise ValidationError("Genre name must be unique.")
 
     @staticmethod
     def genre_list():
@@ -157,12 +170,16 @@ class Session(models.Model):
         if self.session_date == date.today() and self.start_time < datetime.now().time():
             raise ValidationError("The session start time cannot be in the past.")
 
-    def save(self, *args, **kwargs):
+    def calculate_end_time(self):
         if self.start_time and self.movie:
             duration = timedelta(minutes=self.movie.duration + 15)
             datetime_start = timedelta(hours=self.start_time.hour, minutes=self.start_time.minute)
             datetime_end = datetime_start + duration
-            self.end_time = (datetime.min + datetime_end).time()
+            return (datetime.min + datetime_end).time()
+        return None
+
+    def save(self, *args, **kwargs):
+        self.end_time = self.calculate_end_time()
         self.slug = generate_session_slug(self)
         self.clean()
         super().save(*args, **kwargs)

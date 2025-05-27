@@ -5,16 +5,17 @@ services:
     build:
       context: .
     command: >
-      sh -c "./wait-for-it.sh db && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "./wait-for-it.sh db:5432 -- 
+             ./wait-for-it.sh redis:6379 -- 
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
+      - redis
+      - db
     environment:
       - DJANGO_SETTINGS_MODULE=cinema.settings_prod
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -42,10 +43,9 @@ services:
       context: .
     command: celery -A cinema beat --loglevel=info
     depends_on:
-      celery:
-        condition: service_started
-      redis:
-        condition: service_started
+      - redis
+      - db
+
     environment:
       - DJANGO_SETTINGS_MODULE=cinema.settings_prod
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -55,6 +55,10 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      retries: 5
 
   db:
     image: postgres:15
@@ -62,9 +66,6 @@ services:
       - POSTGRES_USER=myuser
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
-      - DB_NAME=mydatabase  # 🔥 Добавляем!
-      - DB_HOST=db
-      - DB_PORT=5432
     ports:
       - "5432:5432"
     volumes:
