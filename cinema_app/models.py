@@ -2,6 +2,7 @@ from datetime import time, timedelta, datetime, date
 from django.contrib.auth.models import User, AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.conf import settings
 from django.urls import reverse
 from django.utils.text import slugify
 from .utils import poster_upload_to, generate_session_slug
@@ -199,7 +200,7 @@ class Order(models.Model):
         (CANCELLED, 'cancelled'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default=PENDING)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -244,7 +245,7 @@ class Ticket(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ціна", editable=False)
     seat_number = models.PositiveIntegerField(verbose_name='Номер місця', db_index=True)
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default=RESERVED)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tickets')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
