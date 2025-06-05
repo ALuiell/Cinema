@@ -266,7 +266,7 @@ class Ticket(models.Model):
         if self.user_id is None:
             raise ValidationError("Користувач обов'язковий для створення квитка.")
 
-        if self.user_id is not self.order.user.id:
+        if self.user_id != self.order.user.id:
             raise ValidationError("Користувач квитка не відповідає користувачу замовлення.")
 
         if self.price == None or self.price <= 0:
