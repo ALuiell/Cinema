@@ -98,3 +98,8 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'tickets'
         ]
         read_only_fields = fields
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('first_name', "last_name",  'email',)
