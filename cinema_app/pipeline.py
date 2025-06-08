@@ -7,14 +7,14 @@ def check_email_exists(strategy, details, user=None, backend=None, request=None,
     Перевіряє, чи існує користувач із таким email.
     Якщо так, то виводить повідомлення про помилку і перенаправляє на сторінку входу.
     """
-    from django.contrib.auth.models import User
+    from django.contrib.auth import get_user_model
+    UserModel = get_user_model()
 
     email = details.get('email')
-    if email and not user:
+    if email and user is None:
         try:
-            User.objects.get(email=email)
+            UserModel.objects.get(email=email)
             messages.error(request, "Аккаунт з таким email вже існує. Увійдіть в існуючий аккаунт")
             return redirect('login')
-
-        except User.DoesNotExist:
+        except UserModel.DoesNotExist:
             pass
