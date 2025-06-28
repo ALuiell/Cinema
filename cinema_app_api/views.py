@@ -4,7 +4,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from social_core.pipeline import user
-
+from django.contrib.auth.models import User
 from cinema_app_api.permissions import IsManager
 from rest_framework.viewsets import ModelViewSet
 from cinema_app_api.serializers import *
@@ -95,27 +95,27 @@ class OrderViewSet(viewsets.ModelViewSet):
         order.save()
         return Response({'status': order.status})
 
-class UserProfileViewSet(viewsets.ViewSet):
-    permission_classes = [AllowAny]
-
-    def create(self, request):
-        tg_id = request.data.get("telegram_id")
-
-        if not tg_id:
-            return Response({"detail": "telegram_id is required"}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            tg_id = int(tg_id)
-        except ValueError:
-            return Response({"detail": "Invalid telegram_id"}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = get_object_or_404(CustomUser, telegram_id=tg_id)
-        if user.telegram_id != tg_id:
-            return Response({"detail": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
-        data = UserProfileSerializer(user).data
-
-        '''action for response to user edit_link'''
-        # @action(detail=False, methods=["post"])
-        # def edit(self, request):
-            # data["edit_link"] = f"https://your-site.com/profile/edit/{user.id}/"
-
-        return Response(data)
+# class UserProfileViewSet(viewsets.ViewSet):
+#     permission_classes = [AllowAny]
+#
+#     def create(self, request):
+#         tg_id = request.data.get("telegram_id")
+#
+#         if not tg_id:
+#             return Response({"detail": "telegram_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+#         try:
+#             tg_id = int(tg_id)
+#         except ValueError:
+#             return Response({"detail": "Invalid telegram_id"}, status=status.HTTP_400_BAD_REQUEST)
+#
+#         user = get_object_or_404(User, telegram_id=tg_id)
+#         if user.telegram_id != tg_id:
+#             return Response({"detail": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
+#         data = UserProfileSerializer(user).data
+#
+#         '''action for response to user edit_link'''
+#         # @action(detail=False, methods=["post"])
+#         # def edit(self, request):
+#             # data["edit_link"] = f"https://your-site.com/profile/edit/{user.id}/"
+#
+#         return Response(data)

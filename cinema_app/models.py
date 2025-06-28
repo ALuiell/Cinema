@@ -9,21 +9,22 @@ from .utils import poster_upload_to, generate_session_slug
 import re
 
 
-# class CustomUser(AbstractUser):
-#     telegram_id = models.BigIntegerField(unique=True,
-#                                          null=True,
-#                                          blank=True,
-#                                          help_text="Telegram user ID"
-#                                          )
-#     verification_code = models.CharField(unique=True,
-#                                          null=True,
-#                                          blank=True,
-#                                          max_length=6,
-#                                          help_text="Verification telegram code")
-#
-#
-#     def __str__(self):
-#         return self.username
+class TelegramProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='telegram_profile')
+    telegram_id = models.BigIntegerField(unique=True,
+                                         null=True,
+                                         blank=True,
+                                         help_text="Telegram user ID"
+                                         )
+    verification_code = models.CharField(unique=True,
+                                         null=True,
+                                         blank=True,
+                                         max_length=6,
+                                         help_text="Verification telegram code")
+
+
+    def __str__(self):
+        return self.user.username
 
 
 class Hall(models.Model):
