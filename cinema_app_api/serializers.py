@@ -1,6 +1,6 @@
 from datetime import datetime
-
-from cinema_app.models import Movie, Order, Ticket, Session, CustomUser, Hall, Genre
+from django.contrib.auth.models import User
+from cinema_app.models import Movie, Order, Ticket, Session, Hall, Genre
 from rest_framework import serializers
 from django.db import transaction
 from django.utils import timezone
@@ -101,5 +101,5 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('first_name', "last_name",  'email',)
