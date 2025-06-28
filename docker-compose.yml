@@ -1,51 +1,65 @@
 version: '3.9'
-
 services:
   web:
-    build:
-      context: .
+    build: .
     command: >
-      sh -c "./wait-for-it.sh db:5432 -- 
-             ./wait-for-it.sh redis:6379 -- 
-             python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "
+              python manage.py migrate cinema_app --noinput &&
+              python manage.py migrate --noinput &&
+              python manage.py runserver 0.0.0.0:8000
+    working_dir: /app
     volumes:
       - .:/app
+      - static_volume:/app/staticfiles
     ports:
       - "8000:8000"
     depends_on:
-      - redis
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=cinema.settings_prod
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - POSTGRES_USER=myuser
-      - POSTGRES_PASSWORD=mypassword
-      - POSTGRES_DB=mydatabase
-      - DB_HOST=db
-      - DB_PORT=5432
 
   celery:
-    build:
-      context: .
-    command: celery -A cinema worker --loglevel=info
+    build: .
+    command: >
+      sh -c "./wait-for-it.py db:5432 redis:6379 -- 
+             celery -A cinema worker --loglevel=info"
+    working_dir: /app
+    volumes:
+      - .:/app
     depends_on:
-      - redis
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=cinema.settings_prod
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
   beat:
-    build:
-      context: .
-    command: celery -A cinema beat --loglevel=info
+    build: .
+    command: >
+      sh -c "./wait-for-it.py db:5432 redis:6379 -- 
+             celery -A cinema beat --loglevel=info"
+    working_dir: /app
+    volumes:
+      - .:/app
     depends_on:
-      - redis
-      - db
-
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=cinema.settings_prod
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -56,25 +70,31 @@ services:
     ports:
       - "6379:6379"
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
       retries: 5
+      start_period: 10s
 
   db:
     image: postgres:15
     environment:
-      - POSTGRES_USER=myuser
-      - POSTGRES_PASSWORD=mypassword
-      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "myuser", "-d", "mydatabase" ]
-      interval: 5s
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
       retries: 5
+      start_period: 10s
 
 volumes:
   postgres_data:
+    driver: local
+  static_volume:
     driver: local

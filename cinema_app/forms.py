@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):
@@ -33,7 +33,7 @@ class CustomUserCreationForm(UserCreationForm):
     )
 
     class Meta:
-        model = get_user_model()
+        model = User
         fields = ('username', 'email', 'password1', 'password2')
         labels = {
             'username': 'Логін',
@@ -45,15 +45,14 @@ class CustomUserCreationForm(UserCreationForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        UserModel = get_user_model()
-        if UserModel.objects.filter(email=email).exists():
+        if User.objects.filter(email=email).exists():
             raise forms.ValidationError("Ця електронна адреса вже використовується.")
         return email
 
 
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
-        model = get_user_model()
+        model = User
         fields = ['first_name', 'last_name', 'email']
 
 

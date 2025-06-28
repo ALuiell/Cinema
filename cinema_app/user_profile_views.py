@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import ListView, TemplateView, UpdateView
-from django.contrib.auth import get_user_model
 from .forms import ProfileUpdateForm
 from .models import *
 
@@ -17,7 +16,7 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
 
 
 class UserProfileSettingsView(LoginRequiredMixin, UpdateView):
-    model = get_user_model()
+    model = User
     form_class = ProfileUpdateForm
     template_name = 'profile/settings.html'
     success_url = reverse_lazy('profile')

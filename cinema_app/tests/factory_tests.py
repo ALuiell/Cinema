@@ -1,12 +1,12 @@
 import random
 import factory
 from cinema_app.models import *
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 
 
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = get_user_model()
+        model = User
 
     username = factory.Faker("user_name")
     email = factory.Faker("email")
