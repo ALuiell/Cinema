@@ -2,7 +2,6 @@ from datetime import time, timedelta, datetime, date
 from django.contrib.auth.models import User, AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.conf import settings
 from django.urls import reverse
 from django.utils.text import slugify
 from .utils import poster_upload_to, generate_session_slug

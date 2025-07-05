@@ -1,5 +1,5 @@
 from rest_framework.routers import DefaultRouter
-from django.urls import path, include
+from django.urls import path, include, re_path
 from .views import MovieViewSet, SessionViewSet, OrderViewSet
 
 router = DefaultRouter()
@@ -9,4 +9,6 @@ router.register(r'orders', OrderViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    re_path(r'^auth/', include('djoser.urls')),
+    re_path(r'^auth/', include('djoser.urls.jwt')),
 ]

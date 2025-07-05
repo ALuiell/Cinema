@@ -30,7 +30,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['mysite.com', 'localhost', 'aluiel3.pythonanywhere.com', '127.0.0.1', '176.36.47.164']
+ALLOWED_HOSTS = ['mysite.com', 'localhost', 'aluiel3.pythonanywhere.com', '127.0.0.1', '176.36.47.164', 'host.docker.internal']
 
 # Application definition
 

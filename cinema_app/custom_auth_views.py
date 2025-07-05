@@ -7,6 +7,7 @@ from .forms import CustomLoginForm, CustomUserCreationForm, CustomPasswordChange
 
 
 # superuser |  aluiel | jopa12365400
+# superuser |  admin | admin
 class CustomPasswordChangeView(PasswordChangeView):
     form_class = CustomPasswordChangeForm
     success_url = reverse_lazy('password_change_done')

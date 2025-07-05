@@ -6,7 +6,7 @@ from cinema_app.models import Order, Ticket
 
 # Настройка логирования
 logging.basicConfig(
-    filename='celery_tasks.log',  # Имя файла для логов
+    filename='logs/celery_tasks.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
 )

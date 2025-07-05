@@ -20,6 +20,9 @@
                 <li class="nav-item mb-2">
                     <a href="{% url 'password_change' %}" class="btn btn-secondary w-100 text-start">Безпека</a>
                 </li>
+                <li class="nav-item mb-2">
+                    <a href="#" class="btn btn-secondary w-100 text-start">Telegram Link</a>
+                </li>
                 <li class="nav-item mt-4">
                     <form action="{% url 'logout' %}" method="post">
                         {% csrf_token %}

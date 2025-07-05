@@ -1,69 +1,73 @@
 {% extends 'profile/user_profile.html' %}
 {% load static %}
-<div class="container mt-4">
-    {% block profile_content %}
+{% block profile_content %}
+    <div class="container mt-4">
         <div class="col-md-9">
             <h2 class="mb-4">Мої замовлення</h2>
-            {% for order in order_list %}
-                <div class="row g-3 mb-4 align-items-center p-3 rounded border shadow-sm">
-                    <!-- Название фильма и статус -->
-                    <div class="col-lg-3 col-md-4 col-sm-12 text-center text-md-start">
-                        <h5 class="fw-bold">{{ order.session.movie.title }}</h5>
-                        <p class="mb-1">
-                            <strong>Статус:</strong>
-                            <span class="{% if order.status == 'pending' %}text-warning
-                            {% elif order.status == 'completed' %}text-success
-                            {% elif order.status == 'cancelled' %}text-danger
-                            {% else %}text-muted{% endif %}">
-                                {% if order.status == 'pending' %}
-                                    Очікується
-                                {% elif order.status == 'completed' %}
-                                    Завершено
-                                {% elif order.status == 'cancelled' %}
-                                    Скасовано
-                                {% else %}
-                                    Невідомий статус
-                                {% endif %}
-                            </span>
-                        </p>
-                        {% if order.status == 'pending' %}
-                            <a href="{% url 'retry_payment' order.id %}" class="btn btn-outline-primary btn-sm mt-2">Повторити
-                                оплату</a>
-                        {% endif %}
+            {% if order_list %}
+                {% for order in order_list %}
+                    <div class="row g-3 mb-4 align-items-center p-3 rounded border shadow-sm">
+                        <!-- Название фильма и статус -->
+                        <div class="col-lg-3 col-md-4 col-sm-12 text-center text-md-start">
+                            <h5 class="fw-bold">{{ order.session.movie.title }}</h5>
+                            <p class="mb-1">
+                                <strong>Статус:</strong>
+                                <span class="{% if order.status == 'pending' %}text-warning
+                                {% elif order.status == 'completed' %}text-success
+                                {% elif order.status == 'cancelled' %}text-danger
+                                {% else %}text-muted{% endif %}">
+                                    {% if order.status == 'pending' %}
+                                        Очікується
+                                    {% elif order.status == 'completed' %}
+                                        Завершено
+                                    {% elif order.status == 'cancelled' %}
+                                        Скасовано
+                                    {% else %}
+                                        Невідомий статус
+                                    {% endif %}
+                                </span>
+                            </p>
+                            {% if order.status == 'pending' %}
+                                <a href="{% url 'retry_payment' order.id %}" class="btn btn-outline-primary btn-sm mt-2">Повторити
+                                    оплату</a>
+                            {% endif %}
+                        </div>
+                        <!-- Дата, время и цена -->
+                        <div class="col-lg-3 col-md-4 col-sm-12">
+                            <p class="mb-1"><strong>Дата:</strong> <span
+                                    class="text-muted">{{ order.session.session_date|date:"d.m.Y" }}</span></p>
+                            <p class="mb-1"><strong>Час:</strong> <span
+                                    class="text-muted">{{ order.session.start_time|time:"H:i" }}</span></p>
+                            <p class="mb-1"><strong>Ціна:</strong> <span
+                                    class="text-muted">{{ order.total_price }} грн</span></p>
+                        </div>
+                        <!-- Зал и места -->
+                        <div class="col-lg-3 col-md-4 col-sm-12">
+                            <p class="mb-1"><strong>Зал:</strong> <span class="text-muted">{{ order.session.hall }}</span>
+                            </p>
+                            <p class="mb-1"><strong>Місця:</strong> <span
+                                    class="text-muted">{{ order.get_seat_numbers }}</span></p>
+                        </div>
+                        <!-- Постер -->
+                        <div class="col-lg-3 col-md-12 text-center">
+                            {% if order.session.movie.poster %}
+                                <img src="{{ order.session.movie.poster.url }}" alt="Постер {{ order.session.movie.title }}"
+                                     class="img-fluid rounded shadow-sm" style="max-width: 100%; height: auto;">
+                            {% else %}
+                                <img src="{% url 'posters/default_poster.jpg' %}" alt="Default Poster"
+                                     class="img-fluid rounded shadow-sm" style="max-width: 100%; height: auto;">
+                            {% endif %}
+                        </div>
                     </div>
-                    <!-- Дата, время и цена -->
-                    <div class="col-lg-3 col-md-4 col-sm-12">
-                        <p class="mb-1"><strong>Дата:</strong> <span
-                                class="text-muted">{{ order.session.session_date|date:"d.m.Y" }}</span></p>
-                        <p class="mb-1"><strong>Час:</strong> <span
-                                class="text-muted">{{ order.session.start_time|time:"H:i" }}</span></p>
-                        <p class="mb-1"><strong>Ціна:</strong> <span
-                                class="text-muted">{{ order.total_price }} грн</span></p>
-                    </div>
-                    <!-- Зал и места -->
-                    <div class="col-lg-3 col-md-4 col-sm-12">
-                        <p class="mb-1"><strong>Зал:</strong> <span class="text-muted">{{ order.session.hall }}</span>
-                        </p>
-                        <p class="mb-1"><strong>Місця:</strong> <span
-                                class="text-muted">{{ order.get_seat_numbers }}</span></p>
-                    </div>
-                    <!-- Постер -->
-                    <div class="col-lg-3 col-md-12 text-center">
-                        {% if order.session.movie.poster %}
-                            <img src="{{ order.session.movie.poster.url }}" alt="Постер {{ order.session.movie.title }}"
-                                 class="img-fluid rounded shadow-sm" style="max-width: 100%; height: auto;">
-                        {% else %}
-                            <img src="{% url 'posters/default_poster.jpg' %}" alt="Default Poster"
-                                 class="img-fluid rounded shadow-sm" style="max-width: 100%; height: auto;">
-                        {% endif %}
-                    </div>
-                </div>
-            {% empty %}
+                {% endfor %}
+                {% if order_list.has_other_pages %}
+                    {% include 'cinema_app/paginator.html' %}
+                {% endif %}
+            {% else %}
                 <div class="text-center">
                     <p class="text-muted">У вас немає замовлень.</p>
                 </div>
-            {% endfor %}
-            {% include 'cinema_app/paginator.html' %}
+            {% endif %}
         </div>
-    {% endblock %}
-</div>
+    </div>
+{% endblock %}
