@@ -101,6 +101,11 @@ def confirm_telegram_link(request):
     if not raw_code or not tg_id:
         return Response({'error': 'Missing code or tg_id.'}, status=400)
 
+    try:
+        tg_id = int(tg_id)
+    except (ValueError, TypeError):
+        return Response( {'error': '"tg_id" must be an integer.'}, status=400)
+
     hashed = TelegramProfile.convert_in_hash(raw_code)
     try:
         profile = TelegramProfile.objects.get(verification_code_hash=hashed)
