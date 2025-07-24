@@ -65,6 +65,9 @@ urlpatterns = [
     path('profile/', user_profile_views.UserProfileView.as_view(), name='profile'),
     path('profile/orders/', user_profile_views.UserOrderListView.as_view(), name='user_orders'),
     path('profile/settings/', user_profile_views.UserProfileSettingsView.as_view(), name='profile_settings'),
+
+    # Telegram views
+    path('telegram/link/', views.start_telegram_link, name='telegram_link_start'),
 ]
 
 # Static files (only in DEBUG mode)

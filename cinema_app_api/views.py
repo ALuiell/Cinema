@@ -110,7 +110,7 @@ def confirm_telegram_link(request):
     if not profile.is_valid():
         return Response({'error': 'Code expired or already used.'}, status=400)
 
-    profile.telegram_id = tg_id
+    profile.telegram_id = int(tg_id)
     profile.use_code()
     return Response({'status': 'Telegram linked successfully.'})
 

@@ -215,7 +215,7 @@ def purchase_cancel(request, order_id):
 
     return render(request, 'payments/purchase_cancel.html', context)
 
-
+@login_required
 def start_telegram_link(request):
     url = TelegramProfile.create_instance(request.user)
     return redirect(url["deep_link"])
