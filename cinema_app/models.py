@@ -1,11 +1,17 @@
+import secrets
 from datetime import time, timedelta, datetime, date
 from django.contrib.auth.models import User, AbstractUser
 from django.core.exceptions import ValidationError
-from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from django.utils import timezone
 from .utils import poster_upload_to, generate_session_slug
 import re
+import hashlib
+from django.conf import settings
+from django.db import models, IntegrityError
+
+
 
 
 class TelegramProfile(models.Model):
@@ -15,15 +21,97 @@ class TelegramProfile(models.Model):
                                          blank=True,
                                          help_text="Telegram user ID"
                                          )
-    verification_code = models.CharField(unique=True,
+    verification_code_hash = models.CharField(unique=True,
                                          null=True,
                                          blank=True,
-                                         max_length=6,
-                                         help_text="Verification telegram code")
+                                         max_length=64,
+                                         help_text="SHA-256 hash от verification code")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['verification_code_hash'],
+                name='unique_verification_code_hash'
+            )
+        ]
+
+    @staticmethod
+    def convert_in_hash(raw_code):
+        return hashlib.sha256(raw_code.encode('utf-8')).hexdigest()
+
+    @classmethod
+    def generate_verification_code(cls):
+        """
+        add UniqueConstraint for verification_code_hash inside model
+        add IntegrityError inside func where i want to use this method for prevent:
+        """
+        while True:
+            code = ''.join(secrets.choice('0123456789') for _ in range(8))
+            code_hash = cls.convert_in_hash(code)
+            if not cls.objects.filter(verification_code_hash=code_hash).exists():
+                return code, code_hash
+
+    @classmethod
+    def create_instance(cls, user):
+        try:
+            code, hash_code = cls.generate_verification_code()
+            bot_name = settings.TELEGRAM_BOT_NAME
+
+            profile = cls.objects.create(
+                verification_code_hash=hash_code,
+                user=user,
+                telegram_id=None
+            )
+
+            return {"deep_link": f"https://t.me/{bot_name}?start={code}"}
+
+        except IntegrityError:
+            # repeat if collision
+            return cls.create_instance(user)
+
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.expires_at = timezone.now() + timedelta(minutes=15)
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        if self.is_used:
+            return False
+        if self.expires_at and timezone.now() > self.expires_at:
+            return False
+        return True
+
+    def use_code(self):
+        if self.is_valid():
+            self.is_used = True
+            self.save()
+            return True
+        return False
 
 
     def __str__(self):
         return self.user.username
+
+#model for monitoring tokens history
+# class TelegramToken(models.Model):
+#     profile = models.ForeignKey(TelegramProfile, on_delete=models.CASCADE, related_name='tokens')
+#     code = models.CharField(max_length=64, unique=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     expires_at = models.DateTimeField()
+#     is_used = models.BooleanField(default=False)
+#
+#     def save(self, *args, **kwargs):
+#         if not self.pk:
+#             self.expires_at = timezone.now() + timedelta(minutes=15)
+#         super().save(*args, **kwargs)
+#
+#     def is_valid(self):
+#         return (not self.is_used) and (timezone.now() < self.expires_at)
 
 
 class Hall(models.Model):

@@ -1,10 +1,7 @@
-from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
-from social_core.pipeline import user
-from django.contrib.auth.models import User
+from rest_framework import viewsets
+from rest_framework.decorators import action, api_view
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from cinema_app_api.permissions import IsManager
 from rest_framework.viewsets import ModelViewSet
 from cinema_app_api.serializers import *
@@ -12,6 +9,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from rest_framework.exceptions import ValidationError, PermissionDenied
+from cinema_app.models import *
 
 # Create your views here.
 
@@ -94,6 +92,29 @@ class OrderViewSet(viewsets.ModelViewSet):
         order.status = Order.CANCELLED
         order.save()
         return Response({'status': order.status})
+
+
+@api_view(['POST'])
+def confirm_telegram_link(request):
+    raw_code = request.data.get('code')
+    tg_id = request.data.get('tg_id')
+    if not raw_code or not tg_id:
+        return Response({'error': 'Missing code or tg_id.'}, status=400)
+
+    hashed = TelegramProfile.convert_in_hash(raw_code)
+    try:
+        profile = TelegramProfile.objects.get(verification_code_hash=hashed)
+    except TelegramProfile.DoesNotExist:
+        return Response({'error': 'Invalid code.'}, status=400)
+
+    if not profile.is_valid():
+        return Response({'error': 'Code expired or already used.'}, status=400)
+
+    profile.telegram_id = tg_id
+    profile.use_code()
+    return Response({'status': 'Telegram linked successfully.'})
+
+
 
 # class UserProfileViewSet(viewsets.ViewSet):
 #     permission_classes = [AllowAny]

@@ -28,8 +28,8 @@ services:
   celery:
     build: .
     command: >
-      sh -c "./wait-for-it.py db:5432 redis:6379 -- 
-             celery -A cinema worker --loglevel=info"
+      sh -c "./wait-for-it.py db:5432 redis:6379 -- \
+               celery -A cinema worker --loglevel=info 2>&1 | tee -a logs/celery_tasks.log"
     working_dir: /app
     volumes:
       - .:/app
@@ -45,11 +45,12 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
+
   beat:
     build: .
     command: >
-      sh -c "./wait-for-it.py db:5432 redis:6379 -- 
-             celery -A cinema beat --loglevel=info"
+      sh -c "./wait-for-it.py db:5432 redis:6379 -- \
+             celery -A cinema beat --loglevel=info 2>&1 | tee -a logs/celery_tasks.log"
     working_dir: /app
     volumes:
       - .:/app

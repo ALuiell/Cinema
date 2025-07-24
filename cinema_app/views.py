@@ -5,7 +5,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.views.decorators.cache import cache_control
 from django.views.generic import ListView, TemplateView, DetailView
-
 from cinema import settings
 from .models import *
 from cinema_app import services
@@ -215,3 +214,8 @@ def purchase_cancel(request, order_id):
     }
 
     return render(request, 'payments/purchase_cancel.html', context)
+
+
+def start_telegram_link(request):
+    url = TelegramProfile.create_instance(request.user)
+    return redirect(url["deep_link"])
