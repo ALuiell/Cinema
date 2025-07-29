@@ -45,7 +45,6 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
-
   beat:
     build: .
     command: >
@@ -77,6 +76,34 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  bot:
+    build: .
+    command: >
+      sh -c "./wait-for-it.py db:5432 redis:6379 web:8000 -- \
+             python -m cinema_tg_bot.bot"
+    working_dir: /app
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=cinema.settings_prod
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMe', timeout=5)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   db:
     image: postgres:15
