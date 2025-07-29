@@ -30,6 +30,7 @@ This project is a web-based cinema ticket booking system built with Django. The 
 - **Redis** - Used for background task management.
 - **Django Background Tasks** - Used for handling asynchronous background tasks.
 - **Celery (prepared settings)** - Configured but not actively used in deployment.
+- **Django REST Framework** - Provides a RESTful API for the application.
 - **Stripe API** - Payment processing.
 - **Bootstrap 5** - Frontend framework for UI.
 
@@ -65,6 +66,15 @@ This project is a web-based cinema ticket booking system built with Django. The 
 ### 🔧 **Admin Panel**
 - Manage movies, sessions, and bookings.
 - Monitor user orders and transactions.
+### 📡 **REST API**
+- JSON API for movies, sessions, and orders under `/api/`.
+- Authentication handled by Djoser with JWT tokens.
+
+### 🤖 **Telegram Integration**
+- Users can link their Telegram account from the profile page.
+- Visit `/telegram/link/` while logged in to receive a deep link to the bot.
+- Confirm the link by `POST`ing `code` and `tg_id` to `/api/telegram/link/confirm/`.
+- Set the bot name via the `TELEGRAM_BOT_NAME` environment variable.
 
 ---
 
@@ -90,9 +100,28 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-### 5️⃣ Access the Web Application
+### 5️⃣ Environment Variables
+Create a `.env` file in the project root and define at least the following variables:
+
+```
+SECRET_KEY=your_secret_key
+DEBUG=True
+TELEGRAM_BOT_NAME=your_bot_name
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+```
+These variables are loaded by `decouple.config` in `cinema/settings.py`.
+
+### 6️⃣ Access the Web Application
 - Open `http://127.0.0.1:8000/` to browse movies and book tickets.
 - Open `http://127.0.0.1:8000/admin/` to access the admin panel.
+
+### 🚢 Run with Docker Compose
+This project includes a `docker-compose.yml` for local development. Build and start all services with:
+```bash
+docker-compose up --build
+```
+The stack includes PostgreSQL, Redis, and Celery workers.
 
 ---
 
@@ -101,10 +130,10 @@ python manage.py runserver
 - [ ] Improve search functionality for movies and sessions.
 - [ ] Add email notifications for ticket purchases.
 - [ ] Optimize UI for a better booking experience.
+- [ ] Integrate a Telegram bot for session updates and account verification.
 
 ---
 
 ## 🤝 Contributing
 Feel free to submit issues and pull requests. Contributions are welcome!
 
-https://aluiel3.pythonanywhere.com/home/
