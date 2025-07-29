@@ -120,6 +120,13 @@ def confirm_telegram_link(request):
     return Response({'status': 'Telegram linked successfully.'})
 
 
+def check_link_profile(request, telegram_id):
+    if not TelegramProfile.objects.filter(telegram_id=telegram_id).exists():
+        return Response({'error': 'Telegram profile not found.'}, status=404)
+    else:
+        return Response({'linked': True}, status=200)
+
+
 
 # class UserProfileViewSet(viewsets.ViewSet):
 #     permission_classes = [AllowAny]
