@@ -4,6 +4,10 @@ from cinema_tg_bot.utils.api import confirm_telegram_link, check_telegram_link
 from cinema_tg_bot.utils.keyboards import guest_menu, user_menu
 
 
+# add signal if user|admin delete linked acc, send signal in tg for enable the mode without authorization
+# add date filter for session list or show only today session or 2-3 days
+# add genre filter for movies list
+
 async def handle_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_id = update.effective_user.id
     args = context.args

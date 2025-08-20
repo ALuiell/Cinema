@@ -3,6 +3,9 @@ from datetime import timedelta
 from django.utils.timezone import now
 from celery import shared_task
 from cinema_app.models import Order, Ticket
+from django.core.mail import send_mail
+from django.conf import settings
+
 
 # Настройка логирования
 logging.basicConfig(
@@ -40,3 +43,13 @@ def cancel_unpaid_orders():
     except Exception as e:
         logger.error(f"Error in cancel_unpaid_orders: {e}")
         raise
+
+
+@shared_task
+def send_link_code_email(to_email: str, code: str):
+    subject = "Your telegram link code"
+    message = f"Enter this code in bot for linked account: {code}"
+    send_mail(subject, message,
+              settings.DEFAULT_FROM_EMAIL,
+              [to_email],
+              fail_silently=False)

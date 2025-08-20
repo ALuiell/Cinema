@@ -11,3 +11,6 @@ def user_menu():
         [["🎬 Movies", "🕓 Showtimes"], ["📄 My Tickets", "👤 Profile"]],
         resize_keyboard=True
     )
+
+# profile menu | unlinked | edit info | notification
+
