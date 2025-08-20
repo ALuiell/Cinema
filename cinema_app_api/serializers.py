@@ -5,6 +5,7 @@ from rest_framework import serializers
 from django.db import transaction
 from django.utils import timezone
 
+
 class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
@@ -86,8 +87,10 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
         return order
 
+
 class OrderDetailSerializer(serializers.ModelSerializer):
-    tickets = TicketSerializer(source='tickets', many=True, read_only=True)
+    tickets = TicketSerializer(many=True, read_only=True)
+    session = SessionSerializer(read_only=True)
 
     class Meta:
         model = Order
@@ -97,9 +100,30 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at',
             'tickets'
         ]
+
         read_only_fields = fields
+
+
+class OrderBotSerializer(serializers.ModelSerializer):
+    tickets = TicketSerializer(many=True, read_only=True)
+    movie_title = serializers.CharField(source="session.movie.title", read_only=True)
+    hall_name = serializers.CharField(source="session.hall.name", read_only=True)
+    session_date = serializers.DateField(source="session.session_date", read_only=True)
+    start_time = serializers.TimeField(source="session.start_time", read_only=True)
+    end_time = serializers.TimeField(source="session.end_time", read_only=True)
+    seats = serializers.SerializerMethodField()
+
+    def get_seats(self, obj):
+        return obj.get_list_seat_numbers()
+
+    class Meta:
+        model = Order
+        fields = ["id", "user", "status", "total_price", "created_at", "updated_at",
+                  "movie_title", "hall_name", "session_date", "start_time", "end_time",
+                  "tickets", "seats"]
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('first_name', "last_name",  'email',)
+        fields = ('first_name', "last_name", 'email',)

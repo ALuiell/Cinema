@@ -12,6 +12,10 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['user'] = self.request.user
+        try:
+            context['tg_profile'] = TelegramProfile.objects.get(user=self.request.user)
+        except TelegramProfile.DoesNotExist:
+            context['tg_profile'] = None
         return context
 
 

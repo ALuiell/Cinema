@@ -56,22 +56,28 @@ class TelegramProfile(models.Model):
                 return code, code_hash
 
     @classmethod
-    def create_instance(cls, user):
-        try:
+    def create_instance(cls, user, link=True):
+        bot_name = settings.TELEGRAM_BOT_NAME
+
+        cls.objects.filter(user=user).delete()
+
+        while True:
             code, hash_code = cls.generate_verification_code()
-            bot_name = settings.TELEGRAM_BOT_NAME
+            try:
+                cls.objects.create(
+                    user=user,
+                    verification_code_hash=hash_code,
+                    telegram_id=None
+                )
+                break
+            except IntegrityError:
+                # repeat if collision
+                continue
 
-            profile = cls.objects.create(
-                verification_code_hash=hash_code,
-                user=user,
-                telegram_id=None
-            )
-
-            return {"deep_link": f"https://t.me/{bot_name}?start={code}"}
-
-        except IntegrityError:
-            # repeat if collision
-            return cls.create_instance(user)
+        result = {'code': code}
+        if link:
+            result['deep_link'] = f"https://t.me/{bot_name}?start={code}"
+        return result
 
 
     def save(self, *args, **kwargs):
@@ -95,6 +101,8 @@ class TelegramProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+# model for user notifications
 
 #model for monitoring tokens history
 # class TelegramToken(models.Model):
@@ -329,7 +337,8 @@ class Ticket(models.Model):
         (CANCELLED, 'cancelled'),
     ]
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ціна", editable=False)
+    # price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ціна", editable=False)
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ціна")
     seat_number = models.PositiveIntegerField(verbose_name='Номер місця', db_index=True)
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default=RESERVED)
     user = models.ForeignKey(User, on_delete=models.CASCADE)

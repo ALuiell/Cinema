@@ -80,7 +80,7 @@ services:
   bot:
     build: .
     command: >
-      sh -c "./wait-for-it.py db:5432 redis:6379 web:8000 -- \
+      sh -c "./wait-for-it.py web:8000 -- \
              python -m cinema_tg_bot.bot"
     working_dir: /app
     volumes:
@@ -91,10 +91,6 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=cinema.settings_prod
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
       web:
         condition: service_healthy
     restart: unless-stopped

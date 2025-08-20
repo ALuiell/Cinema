@@ -14,7 +14,7 @@ from pathlib import Path
 
 from celery.schedules import crontab
 from decouple import config
-
+from datetime import timedelta
 from cinema_app.pipeline import check_email_exists
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,7 +30,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['mysite.com', 'localhost', 'aluiel3.pythonanywhere.com', '127.0.0.1', '176.36.47.164', 'host.docker.internal']
+ALLOWED_HOSTS = ['mysite.com', 'localhost', 'aluiel3.pythonanywhere.com', '127.0.0.1', '176.36.47.164', 'host.docker.internal', 'web']
 
 # Application definition
 
@@ -165,6 +165,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
+CRISPY_ALLOWED_TEMPLATE_PACKS = ("bootstrap5",)
 
 LOGIN_REDIRECT_URL = 'profile'
 LOGOUT_REDIRECT_URL = 'home'
@@ -278,3 +279,19 @@ REST_FRAMEWORK = {
     #     'rest_framework.parsers.MultiPartParser',
     # ),
 }
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=14),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+
+TELEGRAM_BOT_NAME = config('TELEGRAM_BOT_NAME')
+TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN')
+API_BASE_URL = config('API_BASE_URL')
+WEB_APP_URL = config('WEB_APP_URL')
+
+
+
+

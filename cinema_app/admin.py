@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import *
 # Register your models here.
 
+admin.site.register(TelegramProfile)
 
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
@@ -31,8 +32,8 @@ class SessionAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'session', 'display_seat_numbers', 'status',)
-    readonly_fields = ('total_price', 'created_at', 'updated_at')
+    list_display = ('id', 'user', 'session', 'display_seat_numbers', 'status', 'total_price')
+    readonly_fields = ('created_at', 'updated_at')
 
     def display_seat_numbers(self, obj):
         return obj.get_str_seat_numbers()
