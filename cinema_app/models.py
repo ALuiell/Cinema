@@ -75,7 +75,7 @@ class TelegramProfile(models.Model):
                 continue
 
         result = {'code': code}
-        if link:
+        if link and bot_name:
             result['deep_link'] = f"https://t.me/{bot_name}?start={code}"
         return result
 
@@ -337,8 +337,7 @@ class Ticket(models.Model):
         (CANCELLED, 'cancelled'),
     ]
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    # price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ціна", editable=False)
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ціна")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ціна", editable=False)
     seat_number = models.PositiveIntegerField(verbose_name='Номер місця', db_index=True)
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default=RESERVED)
     user = models.ForeignKey(User, on_delete=models.CASCADE)

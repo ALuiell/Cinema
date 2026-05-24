@@ -1,139 +1,239 @@
-# Cinema Ticket Booking System
+# Cinema
 
-## 📌 About the Project
-This project is a web-based cinema ticket booking system built with Django. The system allows users to browse movies, check available sessions, book tickets, and complete online payments via Stripe.
+Навчальна версія Django-проєкту для кінотеатру з простим локальним запуском.
 
----
+Проєкт можна запустити без Redis, Celery, Celery Beat і production settings. Для базової перевірки достатньо Python, залежностей із `requirements.txt` і стандартного запуску Django.
 
-## 📂 Project Structure
+## Що вміє проєкт
 
-- `cinema/` - Main project configuration.
-- `cinema_app/` - Core application containing business logic.
-  - `models.py` - Database models.
-  - `views.py` - Controllers handling page rendering and user interactions.
-  - `services.py` - Business logic for movies, sessions, orders, and payments.
-  - `webhooks.py` - Handles Stripe webhook events.
-- `templates/` - HTML templates for rendering pages.
-- `static/` - Static files such as CSS, JS, and images.
-- `media/` - User-uploaded content such as movie posters.
+- перегляд фільмів;
+- перегляд сеансів;
+- вибір місць;
+- оформлення замовлення;
+- особистий кабінет користувача;
+- історія замовлень;
+- адміністративна панель Django;
+- REST API;
+- демонстраційна Stripe-інтеграція;
+- необов’язкова Telegram-інтеграція.
 
----
+## Що потрібно перед запуском
 
-## 🛠️ Technology Stack
+Перед початком роботи має бути встановлено:
 
-- **Django** - Core framework for backend development.
-- **Django ORM** - Database handling.
-- **PostgreSQL / MySQL / SQLite** - Database storage.
-  - **Local development**: Uses SQLite by default.
-  - **Docker environment**: Uses PostgreSQL.
-  - **Production**: Uses MySQL.
-- **Redis** - Used for background task management.
-- **Django Background Tasks** - Used for handling asynchronous background tasks.
-- **Celery (prepared settings)** - Configured but not actively used in deployment.
-- **Django REST Framework** - Provides a RESTful API for the application.
-- **Stripe API** - Payment processing.
-- **Bootstrap 5** - Frontend framework for UI.
+- Python 3.12 або сумісна версія Python 3;
+- `pip`.
 
----
+Перевірити це можна так:
 
-## 🚀 Features
+```bash
+python --version
+pip --version
+```
 
-### 🎬 **Movies**
-- View a list of available movies.
-- Filter movies by genre, age restriction, and search by title or description.
-- Detailed movie descriptions with posters.
+## Як відкрити проєкт
 
-### 🎟 **Sessions**
-- View available screening sessions.
-- Filter sessions by date and movie.
-- Check available seats in a session.
+Є два звичних варіанти:
 
-### 🛒 **Ticket Booking and Orders**
-- Select seats and book tickets for a session.
-- View booking history in the user profile.
-- Check order status.
+### Варіант 1. Через термінал
 
-### 💳 **Payment Processing (Stripe Integration)**
-- Secure online payments through Stripe.
-- Automatic order status update after payment.
-- Webhook handling for payment verification.
+1. Завантажте або розпакуйте проєкт у будь-яку зручну папку.
+2. Відкрийте термінал або командний рядок.
+3. Перейдіть у папку проєкту командою `cd`.
 
-### 👤 **User Management**
-- Register, login, and manage accounts.
-- Password reset and profile settings.
-- View past ticket purchases and orders.
+Приклад:
 
-### 🔧 **Admin Panel**
-- Manage movies, sessions, and bookings.
-- Monitor user orders and transactions.
-### 📡 **REST API**
-- JSON API for movies, sessions, and orders under `/api/`.
-- Authentication handled by Djoser with JWT tokens.
+```bash
+cd шлях_до_папки_проєкту
+```
 
-### 🤖 **Telegram Integration**
-- Users can link their Telegram account from the profile page.
-- Visit `/telegram/link/` while logged in to receive a deep link to the bot.
-- Confirm the link by `POST`ing `code` and `tg_id` to `/api/telegram/link/confirm/`.
-- Set the bot name via the `TELEGRAM_BOT_NAME` environment variable.
+### Варіант 2. Через IDE
 
----
+Якщо ви використовуєте PyCharm, VS Code або іншу IDE:
 
-## 🛠️ Installation and Setup
+1. Відкрийте папку проєкту через інтерфейс IDE.
+2. Відкрийте вбудований термінал IDE.
+3. Виконуйте ті самі команди, що й у звичайній консолі.
 
-### 1️⃣ Install Dependencies
+## Покроковий запуск проєкту
+
+### 1. Створити віртуальне середовище
+
+```bash
+python -m venv venv
+```
+
+### 2. Активувати віртуальне середовище
+
+Для Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+Для Linux/macOS:
+
+```bash
+source venv/bin/activate
+```
+
+### 3. Встановити залежності
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2️⃣ Apply Migrations
+### 4. Застосувати міграції
+
 ```bash
 python manage.py migrate
 ```
 
-### 3️⃣ Create a Superuser
+### 5. Створити адміністратора
+
 ```bash
 python manage.py createsuperuser
 ```
 
-### 4️⃣ Run the Development Server
+### 6. Запустити сервер
+
 ```bash
 python manage.py runserver
 ```
 
-### 5️⃣ Environment Variables
-Create a `.env` file in the project root and define at least the following variables:
+Після запуску сайт зазвичай буде доступний за адресами:
 
-```
-SECRET_KEY=your_secret_key
-DEBUG=True
-TELEGRAM_BOT_NAME=your_bot_name
-STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
-```
-These variables are loaded by `decouple.config` in `cinema/settings.py`.
+- `http://127.0.0.1:8000/`
+- адмінка: `http://127.0.0.1:8000/admin/`
+- API: `http://127.0.0.1:8000/api/`
 
-### 6️⃣ Access the Web Application
-- Open `http://127.0.0.1:8000/` to browse movies and book tickets.
-- Open `http://127.0.0.1:8000/admin/` to access the admin panel.
+## Тестові дані
 
-### 🚢 Run with Docker Compose
-This project includes a `docker-compose.yml` for local development. Build and start all services with:
+У проєкті є команда для заповнення бази стандартними жанрами та тестовими фільмами.
+
+Запуск:
+
 ```bash
-docker-compose up --build
+python manage.py seed_test_data
 ```
-The stack includes PostgreSQL, Redis, and Celery workers.
 
----
+Що робить команда:
 
-## 📌 Future Improvements
-- [ ] Implement FastAPI-based API for improved performance.
-- [ ] Improve search functionality for movies and sessions.
-- [ ] Add email notifications for ticket purchases.
-- [ ] Optimize UI for a better booking experience.
-- [ ] Integrate a Telegram bot for session updates and account verification.
+- додає стандартні жанри кіно;
+- створює до 10 тестових фільмів;
+- задає випадкову тривалість;
+- задає випадкову дату виходу;
+- не додає постери;
+- випадково призначає жанри.
 
----
+Можна вказати меншу кількість фільмів:
 
-## 🤝 Contributing
-Feel free to submit issues and pull requests. Contributions are welcome!
+```bash
+python manage.py seed_test_data --count 5
+```
 
+## Скасування неоплачених замовлень
+
+У навчальній версії є management command для скасування старих неоплачених замовлень:
+
+```bash
+python manage.py cancel_unpaid_orders
+```
+
+За замовчуванням вона:
+
+- шукає замовлення зі статусом `pending`;
+- перевіряє, що вони старші за 15 хвилин;
+- переводить замовлення в `cancelled`;
+- переводить пов’язані квитки в `cancelled`.
+
+Можна вказати інший ліміт часу:
+
+```bash
+python manage.py cancel_unpaid_orders --minutes 30
+```
+
+## Корисні команди перевірки
+
+Перевірка конфігурації Django:
+
+```bash
+python manage.py check
+```
+
+Перевірка, що нові міграції не потрібні:
+
+```bash
+python manage.py makemigrations --check
+```
+
+Повторне застосування міграцій:
+
+```bash
+python manage.py migrate
+```
+
+## Особливості локальної навчальної версії
+
+Локальна версія проєкту використовує:
+
+- `cinema.settings`;
+- SQLite;
+- `DEBUG=True`.
+
+Для базового запуску не є обов’язковими:
+
+- Redis;
+- Celery;
+- Celery Beat;
+- реальні Stripe-ключі;
+- Telegram token.
+
+## Stripe
+
+У проєкті збережена Stripe-логіка, але в локальній версії вона працює у спрощеному режимі.
+
+Це означає:
+
+- сайт запускається без Stripe-ключів;
+- перегляд сторінок не залежить від Stripe;
+- купівля квитків у локальній версії може працювати як демонстраційний сценарій без реальної оплати.
+
+## Telegram
+
+Telegram-бот є додатковим модулем.
+
+Це означає:
+
+- основний Django-сайт працює без Telegram token;
+- якщо токен не вказаний, бот просто не запускається;
+- сайт, адмінка, профіль, фільми та API продовжують працювати.
+
+## Файли конфігурації
+
+У проєкті є:
+
+- `.env` — безпечний локальний файл налаштувань;
+- `.env.example` — приклад конфігурації.
+
+Для звичайного локального запуску в більшості випадків нічого додатково змінювати не потрібно.
+
+## Основні файли проєкту
+
+- `manage.py` — основний файл запуску Django;
+- `cinema/settings.py` — локальні налаштування;
+- `requirements.txt` — список залежностей;
+- `PROJECT_DESCRIPTION.md` — детальний опис проєкту;
+- `cinema_app/management/commands/seed_test_data.py` — заповнення тестовими даними;
+- `cinema_app/management/commands/cancel_unpaid_orders.py` — скасування старих неоплачених замовлень.
+
+## Коротка версія запуску
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```

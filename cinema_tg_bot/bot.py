@@ -6,6 +6,10 @@ from cinema_tg_bot.config import EMAIL_PATTERN, CODE_PATTERN
 
 
 def main():
+    if not BOT_TOKEN:
+        print("Telegram bot token is not configured. Bot startup skipped.")
+        return
+
     # Create the bot application
     app = (
         ApplicationBuilder()
@@ -19,7 +23,7 @@ def main():
     app.add_handler(MessageHandler(filters.Regex(r"^🔗 Link Account$"), link.handle_link))
     app.add_handler(MessageHandler(filters.Regex(r"^📄 My Tickets"), tickets.handle_tickets))
     app.add_handler(MessageHandler(filters.Regex(r"^👤 Profile"), profile.handle_profile))
-    # app.add_handler(MessageHandler(filters.Regex(r"^🎬 Movies"), movies.handle_movies))
+    app.add_handler(MessageHandler(filters.Regex(r"^🎬 Movies"), movies.handle_movies))
     # app.add_handler(MessageHandler(filters.Regex(r"^🕓 Showtimes"), sessions.handle_showtimes))
 
     app.add_handler(MessageHandler(filters.Regex(CODE_PATTERN) & ~filters.COMMAND,

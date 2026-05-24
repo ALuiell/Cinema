@@ -12,5 +12,4 @@ def user_menu():
         resize_keyboard=True
     )
 
-# profile menu | unlinked | edit info | notification
 

@@ -28,7 +28,6 @@ class MovieViewSet(ModelViewSet):
     default_permissions = [IsAuthenticatedOrReadOnly]
     manager_permissions = [IsManager]
 
-
     def get_permissions(self):
         if self.action in ('create', 'partial_update', 'destroy'):
             return [perm() for perm in self.manager_permissions]
@@ -72,6 +71,21 @@ class OrderViewSet(viewsets.ModelViewSet):
         if self.action in ('partial_update', 'destroy', 'update'):
             return [perm() for perm in self.manager_permissions]
         return [perm() for perm in self.default_permissions]
+
+    def perform_create(self, serializer):
+        # Create the order first
+        order = serializer.save(user=self.request.user)
+
+        # --- Placeholder for Payment Integration ---
+        # Here, you would typically make a call to your payment provider's API
+        # to create a payment session/intent.
+        # For example, with Stripe:
+        # checkout_session = stripe.checkout.Session.create(...)
+        # payment_url = checkout_session.url
+        # For this example, we'll just create a placeholder URL.
+        payment_url = f"https://example-payment-gateway.com/pay?orderId={order.id}"
+
+        order.payment_url = payment_url
 
     def get_queryset(self):
         user = self.request.user

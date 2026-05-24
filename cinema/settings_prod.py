@@ -223,13 +223,15 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
+#
+# CELERY_BEAT_SCHEDULE = {
+#     'run-periodic-task': {
+#         'task': 'cinema_app.tasks.cancel_unpaid_orders',
+#         'schedule': crontab(minute='*'),
+#     },
+# }
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
-CELERY_BEAT_SCHEDULE = {
-    'run-periodic-task': {
-        'task': 'cinema_app.tasks.cancel_unpaid_orders',
-        'schedule': crontab(minute='*'),
-    },
-}
 
 REST_FRAMEWORK = {
     # 1. AUTHENTICATION

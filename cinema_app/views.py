@@ -138,7 +138,8 @@ def purchase_ticket(request, session_slug):
     if request.method == 'POST':
         success, data = services.purchase_ticket_process(request, session)
         if not success:
-            messages.error(request, data["error_message"])
+            error_message = data.get("error_message") if isinstance(data, dict) else str(data)
+            messages.error(request, error_message)
         else:
             return redirect(data['redirect_url'])
 
@@ -218,4 +219,7 @@ def purchase_cancel(request, order_id):
 @login_required
 def start_telegram_link(request):
     url = TelegramProfile.create_instance(request.user)
+    if "deep_link" not in url:
+        messages.warning(request, "Telegram bot is not configured in the local version.")
+        return redirect('profile')
     return redirect(url["deep_link"])

@@ -1,7 +1,7 @@
 import os
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cinema.settings_prod")
+os.environ["DJANGO_SETTINGS_MODULE"] = "cinema.settings"
 django.setup()
 
 from django.conf import settings

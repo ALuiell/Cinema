@@ -2,10 +2,10 @@ import httpx
 from cinema_tg_bot.config import API_BASE_URL
 
 
-async def confirm_telegram_link(code: str, tg_id: int):
+async def confirm_telegram_link(code: str, tg_id: int) -> (bool, str):
     url = f"{API_BASE_URL}telegram/link/confirm/"
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             r = await client.post(url, json={"code": code, "tg_id": tg_id})
             if r.status_code == 200:
                 return True, "✅ Your Telegram account has been successfully linked!"
@@ -14,20 +14,24 @@ async def confirm_telegram_link(code: str, tg_id: int):
         return False, f"🚫 Connection to the API failed: {e}"
 
 
-async def check_telegram_link(tg_id: int):
+async def check_telegram_link(tg_id: int ) -> (bool, str):
     url = f"{API_BASE_URL}telegram/link/check/{tg_id}/"
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             r = await client.get(url)
-            return r.status_code == 200
+            if r.status_code == 200:
+                return True, f"Verified link for Telegram account {tg_id} completed!"
+            if r.status_code == 404:
+                return True, f"Verified link for Telegram account {tg_id} does not exist!"
+            return False, f"Something went wrong..."
     except httpx.RequestError as e:
          # This covers all network-related issues: DNS errors, timeouts, etc.
-        return False
+        return False, f'🚫 Verification of Telegram account failed: {e}'
 
 async def user_profile_info(tg_id: int):
     url = f'{API_BASE_URL}telegram/user/info/{tg_id}/'
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:  # 10 секунд timeout
+        async with httpx.AsyncClient(timeout=10.0) as client:
             r = await client.get(url)
             if r.status_code == 200:
                 return True, r.json()

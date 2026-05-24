@@ -1,19 +1,26 @@
 from __future__ import absolute_import, unicode_literals
 import os
-from celery import Celery
+
+try:
+    from celery import Celery
+except ImportError:  # pragma: no cover - optional dependency for local study setup
+    Celery = None
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cinema.settings_prod')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'cinema.settings'
 
-app = Celery('cinema')
+if Celery is not None:
+    app = Celery('cinema')
+    app.config_from_object('django.conf:settings', namespace='CELERY')
+    app.autodiscover_tasks()
+else:
+    app = None
+
+    def debug_task(*args, **kwargs):
+        raise RuntimeError('Celery is not installed in this local setup.')
 
 
-app.config_from_object('django.conf:settings', namespace='CELERY')
-
-
-app.autodiscover_tasks()
-
-
-@app.task(bind=True)
-def debug_task(self):
-    print(f'Request: {self.request!r}')
+if app is not None:
+    @app.task(bind=True)
+    def debug_task(self):
+        print(f'Request: {self.request!r}')

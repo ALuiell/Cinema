@@ -1,15 +1,25 @@
-import stripe
+import logging
+from pathlib import Path
+
+from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import JsonResponse
+
 from .models import Order, Ticket
-import logging
-from django.views.decorators.csrf import csrf_exempt
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+try:
+    import stripe
+except ImportError:  # pragma: no cover - optional dependency for local study setup
+    stripe = None
 
+if stripe is not None:
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+LOGS_DIR = Path(__file__).resolve().parent.parent / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
 
 logging.basicConfig(
-    filename='webhooks.log',
+    filename=LOGS_DIR / 'webhooks.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
 )
@@ -19,6 +29,12 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def stripe_webhook(request):
+    if stripe is None:
+        return JsonResponse({'error': 'Stripe library is not installed.'}, status=503)
+
+    if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_WEBHOOK_SECRET:
+        return JsonResponse({'error': 'Stripe webhook is not configured.'}, status=503)
+
     payload = request.body.decode('utf-8')
     sig_header = request.headers.get("Stripe-Signature")
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET

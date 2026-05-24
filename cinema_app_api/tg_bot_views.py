@@ -100,5 +100,6 @@ def send_code_email(request):
         user = User.objects.filter(email=email).first()
         profile_data = TelegramProfile.create_instance(user, False)
         code = profile_data['code']
-        send_link_code_email.delay(email, code)
+        send_email_task = getattr(send_link_code_email, 'delay', send_link_code_email)
+        send_email_task(email, code)
         return Response({'msg': 'code send on provided email'}, status=200)
